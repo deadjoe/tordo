@@ -141,6 +141,19 @@ uv run tordo apply-plan artifacts/tmp/axel-f-plan.json \
   --timeout 180
 ```
 
+For larger MIDI files, split note writes into chunk plans so each bridge request stays small:
+
+```bash
+uv run tordo plan midi-file test_midi/rasputin.mid \
+  --prefix "Rasputin" \
+  --scene-name "Rasputin Full" \
+  --tempo 122 \
+  --time-scale 1.0 \
+  --out artifacts/tmp/rasputin-structure-plan.json \
+  --split-notes-dir artifacts/tmp/rasputin-note-chunks \
+  --note-chunk-size 900
+```
+
 When a Live Set contains only default empty tracks and an import plan appends new tracks, `apply-plan` appends cleanup operations for default empty tracks such as `1-MIDI`, `2-MIDI`, `3-Audio`, and `4-Audio`. Disable this with:
 
 ```bash

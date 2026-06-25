@@ -1,13 +1,19 @@
 import argparse
 import json
 import sys
+from pathlib import Path
 
 from tordo.analysis import analyze_set_notes, format_markdown, load_set_notes
 from tordo.archive import export_archive
 from tordo.bridge_client import BridgeConnectionError, BridgeResponseError, require_ok, send_request
 from tordo.client import main as bridge_main
 from tordo.diff import diff_archives, write_diff_markdown
-from tordo.midi_import import midi_file_plan
+from tordo.midi_import import (
+    DEFAULT_NOTE_CHUNK_SIZE,
+    midi_file_note_chunk_plans,
+    midi_file_plan,
+    midi_file_structure_plan,
+)
 from tordo.paths import ensure_parent, tmp_path
 from tordo.plan_preflight import prepare_plan_for_apply
 from tordo.plans import (
@@ -106,6 +112,11 @@ def main(argv=None):
     midi_file_parser.add_argument("--scene-name")
     midi_file_parser.add_argument("--tempo", default=138.0, type=float)
     midi_file_parser.add_argument("--time-scale", default=0.5, type=float)
+    midi_file_parser.add_argument(
+        "--split-notes-dir",
+        help="Write a structure-only plan to --out and note chunk plans into this directory.",
+    )
+    midi_file_parser.add_argument("--note-chunk-size", default=DEFAULT_NOTE_CHUNK_SIZE, type=int)
     variation_parser = plan_subparsers.add_parser(
         "section-variation",
         help="Create a second-scene variation on existing four-track MIDI sketch tracks.",
@@ -337,6 +348,37 @@ def main(argv=None):
             print("wrote %s" % args.out)
             return 0
         if args.plan_command == "midi-file":
+            if args.split_notes_dir:
+                plan = midi_file_structure_plan(
+                    args.midi_path,
+                    prefix=args.prefix,
+                    scene_name=args.scene_name,
+                    tempo=args.tempo,
+                    time_scale=args.time_scale,
+                )
+                note_plans = midi_file_note_chunk_plans(
+                    args.midi_path,
+                    prefix=args.prefix,
+                    scene_name=args.scene_name,
+                    time_scale=args.time_scale,
+                    note_chunk_size=args.note_chunk_size,
+                )
+                note_dir = Path(args.split_notes_dir)
+                for index, note_plan in enumerate(note_plans, start=1):
+                    note_filename = "%03d-%s-%05d.json" % (
+                        index,
+                        slugify(note_plan["layer"]),
+                        note_plan["chunk_note_offset"],
+                    )
+                    note_path = note_dir / note_filename
+                    write_plan(note_path, note_plan)
+                plan["note_chunk_plan_count"] = len(note_plans)
+                plan["note_chunk_size"] = args.note_chunk_size
+                plan["note_chunk_dir"] = str(note_dir)
+                write_plan(args.out, plan)
+                print("wrote %s" % args.out)
+                print("wrote %s note chunk plans to %s" % (len(note_plans), note_dir))
+                return 0
             plan = midi_file_plan(
                 args.midi_path,
                 prefix=args.prefix,
@@ -598,6 +640,10 @@ def delete_tracks_by_name(names, out, apply, allow_non_empty, host, port, timeou
 
 def preflight_report_has_entries(report):
     return any(report.get(key) for key in report)
+
+
+def slugify(value):
+    return "".join(char.lower() if char.isalnum() else "-" for char in str(value)).strip("-") or "chunk"
 
 
 def resolve_track_names(tracks, names):
