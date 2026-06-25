@@ -24,7 +24,7 @@ This is an early lab project, but the core loop is working:
 - Modify MIDI notes by `note_id`.
 - Export snapshots and note archives for offline analysis and diffing.
 
-The bridge version currently validated in Live is `AbletonAgentBridge 0.7.6`.
+The current bridge source version is `TordoBridge 0.8.0`.
 
 ## Requirements
 
@@ -50,7 +50,7 @@ uv run python tools/install_remote_script.py
 Restart Ableton Live, then select this control surface:
 
 ```text
-Settings -> Link, Tempo & MIDI -> Control Surface -> AbletonAgentBridge
+Settings -> Link, Tempo & MIDI -> Control Surface -> TordoBridge
 ```
 
 Input and Output can stay set to `None`.
@@ -60,21 +60,21 @@ Input and Output can stay set to `None`.
 Check that the bridge is reachable:
 
 ```bash
-uv run ableton-agent bridge doctor
-uv run ableton-agent bridge ping
+uv run tordo bridge doctor
+uv run tordo bridge ping
 ```
 
 Read the current Live Set:
 
 ```bash
-uv run ableton-agent bridge snapshot
+uv run tordo bridge snapshot
 ```
 
 Search Live Browser items:
 
 ```bash
-uv run ableton-agent browser-items --root sounds --query "Antenna Lead"
-uv run ableton-agent browser-items --root audio_effects --query "Auto Filter"
+uv run tordo browser-items --root sounds --query "Antenna Lead"
+uv run tordo browser-items --root audio_effects --query "Auto Filter"
 ```
 
 ## Plans
@@ -84,14 +84,14 @@ Plans are JSON documents applied through `apply-plan`.
 Dry-run first:
 
 ```bash
-uv run ableton-agent apply-plan artifacts/tmp/example-plan.json \
+uv run tordo apply-plan artifacts/tmp/example-plan.json \
   --prepared-out artifacts/tmp/example-prepared-dry-run.json
 ```
 
 Apply after inspection:
 
 ```bash
-uv run ableton-agent apply-plan artifacts/tmp/example-plan.json \
+uv run tordo apply-plan artifacts/tmp/example-plan.json \
   --apply \
   --prepared-out artifacts/tmp/example-prepared-apply.json \
   --timeout 120
@@ -126,7 +126,7 @@ Put local MIDI test files in `test_midi/`.
 Generate a role-based import plan:
 
 ```bash
-uv run ableton-agent plan midi-file test_midi/axel_F.mid \
+uv run tordo plan midi-file test_midi/axel_F.mid \
   --prefix "Axel F" \
   --scene-name "Axel F Full" \
   --out artifacts/tmp/axel-f-plan.json
@@ -135,7 +135,7 @@ uv run ableton-agent plan midi-file test_midi/axel_F.mid \
 Apply it:
 
 ```bash
-uv run ableton-agent apply-plan artifacts/tmp/axel-f-plan.json \
+uv run tordo apply-plan artifacts/tmp/axel-f-plan.json \
   --apply \
   --prepared-out artifacts/tmp/axel-f-prepared-apply.json \
   --timeout 180
@@ -144,7 +144,7 @@ uv run ableton-agent apply-plan artifacts/tmp/axel-f-plan.json \
 When a Live Set contains only default empty tracks and an import plan appends new tracks, `apply-plan` appends cleanup operations for default empty tracks such as `1-MIDI`, `2-MIDI`, `3-Audio`, and `4-Audio`. Disable this with:
 
 ```bash
-uv run ableton-agent apply-plan artifacts/tmp/axel-f-plan.json \
+uv run tordo apply-plan artifacts/tmp/axel-f-plan.json \
   --no-cleanup-empty-project-tracks
 ```
 
@@ -153,13 +153,13 @@ uv run ableton-agent apply-plan artifacts/tmp/axel-f-plan.json \
 Export the current Live Set into an archive:
 
 ```bash
-uv run ableton-agent export --out exports/current --limit-per-clip 10000
+uv run tordo export --out exports/current --limit-per-clip 10000
 ```
 
 Analyze notes:
 
 ```bash
-uv run ableton-agent analyze exports/current/set-notes.json \
+uv run tordo analyze exports/current/set-notes.json \
   --json-out artifacts/tmp/current-analysis.json \
   --md-out artifacts/tmp/current-analysis.md
 ```
@@ -167,14 +167,14 @@ uv run ableton-agent analyze exports/current/set-notes.json \
 Diff two exports:
 
 ```bash
-uv run ableton-agent diff exports/before exports/after
+uv run tordo diff exports/before exports/after
 ```
 
 ## Project Layout
 
 ```text
-ableton_agent/                 External Python CLI and planning logic
-remote-script/AbletonAgentBridge/
+tordo/                 External Python CLI and planning logic
+remote-script/TordoBridge/
                                Thin Live-side Remote Script bridge
 tools/install_remote_script.py Remote Script installer
 docs/                          Design notes and handoff material

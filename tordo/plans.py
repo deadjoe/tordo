@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from ableton_agent.paths import ensure_parent
+from tordo.paths import ensure_parent
 
 
 def demo_melody_plan(track_name="AI Test - Melody", clip_name="AI Test - 8 Bar Motif", scene_index=0):

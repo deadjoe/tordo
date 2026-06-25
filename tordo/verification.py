@@ -1,7 +1,7 @@
-from ableton_agent.bridge_client import require_ok, send_request
-from ableton_agent.plan_preflight import prepare_plan_for_apply
-from ableton_agent.plans import load_plan
-from ableton_agent.selectors import resolve_snapshot_clip_slot, resolve_snapshot_track
+from tordo.bridge_client import require_ok, send_request
+from tordo.plan_preflight import prepare_plan_for_apply
+from tordo.plans import load_plan
+from tordo.selectors import resolve_snapshot_clip_slot, resolve_snapshot_track
 
 FLOAT_FIELDS = {
     "start_time",
