@@ -1,7 +1,7 @@
 # tordo
 
 <p align="center">
-  <img src="assets/tordo_logo.png" alt="tordo logo" width="180">
+  <img src="assets/tordo_logo.png" alt="tordo logo" width="200" height="200">
 </p>
 
 Tordo is an agent-friendly Ableton Live control experiment.
