@@ -4,9 +4,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from ableton_agent.bridge_client import DEFAULT_HOST, DEFAULT_PORT, BridgeConnectionError, send_request
+from tordo.bridge_client import DEFAULT_HOST, DEFAULT_PORT, BridgeConnectionError, send_request
 
-DEFAULT_REMOTE_SCRIPT = Path.home() / "Music" / "Ableton" / "User Library" / "Remote Scripts" / "AbletonAgentBridge"
+DEFAULT_REMOTE_SCRIPT = Path.home() / "Music" / "Ableton" / "User Library" / "Remote Scripts" / "TordoBridge"
 
 
 def print_response(response, compact=False):
@@ -17,7 +17,7 @@ def print_response(response, compact=False):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="CLI client for AbletonAgentBridge.")
+    parser = argparse.ArgumentParser(description="Tordo bridge client.")
     parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--port", default=DEFAULT_PORT, type=int)
     parser.add_argument("--timeout", default=5.0, type=float)
@@ -109,7 +109,7 @@ def main(argv=None):
                 "code": "connection_failed",
                 "message": str(exc),
                 "hint": (
-                    "Restart Ableton Live, then select AbletonAgentBridge in "
+                    "Restart Ableton Live, then select TordoBridge in "
                     "Settings -> Link, Tempo & MIDI -> Control Surface."
                 ),
             },

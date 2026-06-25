@@ -19,7 +19,7 @@ except ImportError:
 
 HOST = "127.0.0.1"
 PORT = 8765
-BRIDGE_VERSION = "0.7.6"
+BRIDGE_VERSION = "0.8.0"
 PROTOCOL_VERSION = 1
 MAX_REQUEST_BYTES = 1024 * 1024
 MAX_NOTES_PER_CLIP = 20000
@@ -66,15 +66,15 @@ COMMANDS = [
 ]
 
 
-class AbletonAgentBridge(ControlSurface):
+class TordoBridge(ControlSurface):
     """Small JSON bridge for AI-agent experiments."""
 
     def __init__(self, c_instance):
-        super(AbletonAgentBridge, self).__init__(c_instance)
+        super(TordoBridge, self).__init__(c_instance)
         self._requests = queue.Queue()
         self._stop_event = threading.Event()
         self._server_socket = None
-        self._server_thread = threading.Thread(target=self._serve, name="AbletonAgentBridge")
+        self._server_thread = threading.Thread(target=self._serve, name="TordoBridge")
         self._server_thread.daemon = True
         self._server_thread.start()
         self._log("started on %s:%s" % (HOST, PORT))
@@ -88,13 +88,13 @@ class AbletonAgentBridge(ControlSurface):
             pass
         self._log("stopped")
         try:
-            super(AbletonAgentBridge, self).disconnect()
+            super(TordoBridge, self).disconnect()
         except Exception:
             pass
 
     def update_display(self):
         try:
-            super(AbletonAgentBridge, self).update_display()
+            super(TordoBridge, self).update_display()
         except Exception:
             pass
 
@@ -216,7 +216,7 @@ class AbletonAgentBridge(ControlSurface):
     def _ping(self):
         song = self.song()
         return {
-            "bridge": "AbletonAgentBridge",
+            "bridge": "TordoBridge",
             "bridge_version": BRIDGE_VERSION,
             "protocol_version": PROTOCOL_VERSION,
             "host": HOST,
@@ -228,7 +228,7 @@ class AbletonAgentBridge(ControlSurface):
 
     def _capabilities(self):
         return {
-            "bridge": "AbletonAgentBridge",
+            "bridge": "TordoBridge",
             "bridge_version": BRIDGE_VERSION,
             "protocol_version": PROTOCOL_VERSION,
             "commands": list(COMMANDS),
@@ -369,14 +369,14 @@ class AbletonAgentBridge(ControlSurface):
 
     def _log(self, message):
         try:
-            self.log_message("[AbletonAgentBridge] %s" % message)
+            self.log_message("[TordoBridge] %s" % message)
         except Exception:
             pass
 
 
 def response_meta():
     return {
-        "bridge": "AbletonAgentBridge",
+        "bridge": "TordoBridge",
         "bridge_version": BRIDGE_VERSION,
         "protocol_version": PROTOCOL_VERSION,
     }

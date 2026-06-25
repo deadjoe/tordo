@@ -2,7 +2,7 @@ import argparse
 import json
 from pathlib import Path
 
-from ableton_agent.paths import ensure_parent, tmp_path
+from tordo.paths import ensure_parent, tmp_path
 
 
 def load_archive(path):
@@ -266,7 +266,7 @@ def read_json(path):
 
 def write_diff_markdown(diff, path):
     lines = [
-        "# Ableton Archive Diff",
+        "# Tordo Archive Diff",
         "",
         "- Before: %s" % diff["before"],
         "- After: %s" % diff["after"],
@@ -328,7 +328,7 @@ def write_diff_markdown(diff, path):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Diff two Ableton export archives.")
+    parser = argparse.ArgumentParser(description="Diff two Tordo export archives.")
     parser.add_argument("before")
     parser.add_argument("after")
     parser.add_argument("--json-out", default=tmp_path("archive-diff.json"))

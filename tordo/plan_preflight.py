@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from ableton_agent.selectors import (
+from tordo.selectors import (
     normalize_track_type,
     requested_name,
     resolve_snapshot_clip_slot,

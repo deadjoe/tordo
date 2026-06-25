@@ -3,8 +3,8 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-from ableton_agent.analysis import analyze_set_notes, format_markdown
-from ableton_agent.bridge_client import require_ok, send_request
+from tordo.analysis import analyze_set_notes, format_markdown
+from tordo.bridge_client import require_ok, send_request
 
 DEFAULT_EXPORTS_DIR = Path("exports")
 

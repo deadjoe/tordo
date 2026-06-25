@@ -2,15 +2,15 @@ import argparse
 import json
 import sys
 
-from ableton_agent.analysis import analyze_set_notes, format_markdown, load_set_notes
-from ableton_agent.archive import export_archive
-from ableton_agent.bridge_client import BridgeConnectionError, BridgeResponseError, require_ok, send_request
-from ableton_agent.client import main as bridge_main
-from ableton_agent.diff import diff_archives, write_diff_markdown
-from ableton_agent.midi_import import midi_file_plan
-from ableton_agent.paths import ensure_parent, tmp_path
-from ableton_agent.plan_preflight import prepare_plan_for_apply
-from ableton_agent.plans import (
+from tordo.analysis import analyze_set_notes, format_markdown, load_set_notes
+from tordo.archive import export_archive
+from tordo.bridge_client import BridgeConnectionError, BridgeResponseError, require_ok, send_request
+from tordo.client import main as bridge_main
+from tordo.diff import diff_archives, write_diff_markdown
+from tordo.midi_import import midi_file_plan
+from tordo.paths import ensure_parent, tmp_path
+from tordo.plan_preflight import prepare_plan_for_apply
+from tordo.plans import (
     demo_melody_plan,
     device_insertion_proof_plan,
     device_parameter_proof_plan,
@@ -24,9 +24,9 @@ from ableton_agent.plans import (
     track_note_edit_proof_plan,
     write_plan,
 )
-from ableton_agent.project_cleanup import append_empty_project_track_cleanup
-from ableton_agent.schema import agent_plan_schema
-from ableton_agent.verification import (
+from tordo.project_cleanup import append_empty_project_track_cleanup
+from tordo.schema import agent_plan_schema
+from tordo.verification import (
     verify_device_parameters,
     verify_note_edit,
     verify_note_metadata,
@@ -35,7 +35,7 @@ from ableton_agent.verification import (
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Ableton agent lab CLI.")
+    parser = argparse.ArgumentParser(description="Tordo CLI.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     export_parser = subparsers.add_parser("export", help="Export the current Live Set into an archive directory.")
@@ -249,7 +249,7 @@ def main(argv=None):
     verify_note_edit_parser.add_argument("--port", default=8765, type=int)
     verify_note_edit_parser.add_argument("--timeout", default=20.0, type=float)
 
-    bridge_parser = subparsers.add_parser("bridge", help="Forward raw bridge commands to ableton_agent.client.")
+    bridge_parser = subparsers.add_parser("bridge", help="Forward raw bridge commands to tordo.client.")
     bridge_parser.add_argument("bridge_args", nargs=argparse.REMAINDER)
 
     args = parser.parse_args(argv)
