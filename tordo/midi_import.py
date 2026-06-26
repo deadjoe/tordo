@@ -274,8 +274,9 @@ def select_layers(parsed):
 
 
 def is_axel_profile(parsed):
-    channels = set(parsed["notes_by_channel"])
-    return bool(channels.intersection({7, 8, 10, 15}))
+    labels = [Path(parsed.get("path") or "").stem, parsed.get("track_name") or ""]
+    labels.extend(name or "" for name in (parsed.get("track_names_by_channel") or {}).values())
+    return any("axel" in label.lower() for label in labels)
 
 
 def select_axel_layers(parsed):
@@ -405,6 +406,10 @@ def classify_channel(parsed, channel):
         return "vocal"
     if "string" in name:
         return "strings"
+    if "brass" in name or "horn" in name or (program is not None and 56 <= program <= 63):
+        return "brass"
+    if "organ" in name or (program is not None and 16 <= program <= 23):
+        return "organ"
     if "overdriv" in name or "distort" in name:
         return "drive_guitar"
     if "acoustic guitar" in name or program in (24, 25):
@@ -423,10 +428,12 @@ def general_layer_order(parsed, channel):
         "lead": 2,
         "vocal": 3,
         "strings": 4,
-        "electric_guitar": 5,
-        "acoustic_guitar": 6,
-        "drive_guitar": 7,
-        "melodic": 8,
+        "brass": 5,
+        "organ": 6,
+        "electric_guitar": 7,
+        "acoustic_guitar": 8,
+        "drive_guitar": 9,
+        "melodic": 10,
     }
     return (role_order.get(classify_channel(parsed, channel), 99), channel)
 
@@ -458,6 +465,28 @@ def general_layer(layer_id, role, channel, role_index, parsed):
         "lead": ("Main Melody", "Raindrop Lead.adg", "sounds", 0.62, 0.0, 0, ["Auto Filter"], False),
         "vocal": ("Vocal Pad", "Vocal Ambience.adg", "sounds", 0.34, 0.18, 0, [], False),
         "strings": ("Strings", "Ambient Strings.adg", "sounds", 0.38, -0.12, 0, [], False),
+        "brass": (
+            "Brass",
+            "Basic Silk Horns.adg",
+            "sounds",
+            0.42,
+            0.12,
+            0,
+            [],
+            False,
+            "query:Sounds#Brass:FileId_70259",
+        ),
+        "organ": (
+            "Organ",
+            "ACME Organ.adg",
+            "sounds",
+            0.38,
+            0.08,
+            0,
+            [],
+            False,
+            "query:Sounds#Piano%20&%20Keys:FileId_39159",
+        ),
         "electric_guitar": (
             "Electric Guitar",
             "Guitar Electric Clean.adg",
