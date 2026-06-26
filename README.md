@@ -154,6 +154,25 @@ uv run tordo plan midi-file test_midi/rasputin.mid \
   --note-chunk-size 900
 ```
 
+Run the same flow as an end-to-end proof:
+
+```bash
+uv run tordo proof midi-import test_midi/rasputin.mid \
+  --prefix "Rasputin" \
+  --scene-name "Rasputin Full" \
+  --tempo 122 \
+  --time-scale 1.0 \
+  --note-chunk-size 900 \
+  --work-dir artifacts/tmp/proofs/rasputin \
+  --export-out exports/rasputin-proof \
+  --replace-existing \
+  --overwrite \
+  --timeout 180 \
+  --limit-per-clip 20000
+```
+
+The proof command writes plans, prepared plans, bridge responses, a proof report, a Live export archive, and a per-clip note tuple diff.
+
 When a Live Set contains only default empty tracks and an import plan appends new tracks, `apply-plan` appends cleanup operations for default empty tracks such as `1-MIDI`, `2-MIDI`, `3-Audio`, and `4-Audio`. Disable this with:
 
 ```bash
