@@ -31,6 +31,7 @@ from tordo.plans import (
     write_plan,
 )
 from tordo.project_cleanup import append_empty_project_track_cleanup
+from tordo.proofs import run_midi_import_proof
 from tordo.schema import agent_plan_schema
 from tordo.verification import (
     verify_device_parameters,
@@ -262,6 +263,29 @@ def main(argv=None):
 
     bridge_parser = subparsers.add_parser("bridge", help="Forward raw bridge commands to tordo.client.")
     bridge_parser.add_argument("bridge_args", nargs=argparse.REMAINDER)
+
+    proof_parser = subparsers.add_parser("proof", help="Run end-to-end runtime proof harnesses.")
+    proof_subparsers = proof_parser.add_subparsers(dest="proof_command", required=True)
+    midi_import_proof = proof_subparsers.add_parser(
+        "midi-import",
+        help="Apply a MIDI import, export the result, and verify written notes against the generated plan.",
+    )
+    midi_import_proof.add_argument("midi_path")
+    midi_import_proof.add_argument("--prefix")
+    midi_import_proof.add_argument("--scene-name")
+    midi_import_proof.add_argument("--tempo", default=138.0, type=float)
+    midi_import_proof.add_argument("--time-scale", default=0.5, type=float)
+    midi_import_proof.add_argument("--note-chunk-size", default=DEFAULT_NOTE_CHUNK_SIZE, type=int)
+    midi_import_proof.add_argument("--work-dir")
+    midi_import_proof.add_argument("--export-out")
+    midi_import_proof.add_argument("--replace-existing", action="store_true")
+    midi_import_proof.add_argument("--allow-non-empty-project", action="store_true")
+    midi_import_proof.add_argument("--overwrite", action="store_true")
+    midi_import_proof.add_argument("--no-cleanup-empty-project-tracks", action="store_true")
+    midi_import_proof.add_argument("--host", default="127.0.0.1")
+    midi_import_proof.add_argument("--port", default=8765, type=int)
+    midi_import_proof.add_argument("--timeout", default=180.0, type=float)
+    midi_import_proof.add_argument("--limit-per-clip", default=20000, type=int)
 
     args = parser.parse_args(argv)
     if args.command == "export":
@@ -585,6 +609,32 @@ def main(argv=None):
         if bridge_args and bridge_args[0] == "--":
             bridge_args = bridge_args[1:]
         return bridge_main(bridge_args)
+    if args.command == "proof":
+        if args.proof_command == "midi-import":
+            try:
+                report = run_midi_import_proof(
+                    args.midi_path,
+                    prefix=args.prefix,
+                    scene_name=args.scene_name,
+                    tempo=args.tempo,
+                    time_scale=args.time_scale,
+                    note_chunk_size=args.note_chunk_size,
+                    work_dir=args.work_dir,
+                    export_out=args.export_out,
+                    replace_existing=args.replace_existing,
+                    allow_non_empty_project=args.allow_non_empty_project,
+                    overwrite=args.overwrite,
+                    cleanup_empty_project_tracks=not args.no_cleanup_empty_project_tracks,
+                    host=args.host,
+                    port=args.port,
+                    timeout=args.timeout,
+                    limit_per_clip=args.limit_per_clip,
+                )
+            except (BridgeConnectionError, BridgeResponseError, ValueError) as exc:
+                print("proof midi-import failed: %s" % exc, file=sys.stderr)
+                return 1
+            print(json.dumps(proof_summary(report), indent=2, sort_keys=True))
+            return 0 if report.get("ok") else 1
     return 2
 
 
@@ -644,6 +694,23 @@ def preflight_report_has_entries(report):
 
 def slugify(value):
     return "".join(char.lower() if char.isalnum() else "-" for char in str(value)).strip("-") or "chunk"
+
+
+def proof_summary(report):
+    verification = report.get("verification") or {}
+    return {
+        "ok": report.get("ok"),
+        "proof": report.get("proof"),
+        "midi_path": report.get("midi_path"),
+        "prefix": report.get("prefix"),
+        "scene_name": report.get("scene_name"),
+        "work_dir": report.get("work_dir"),
+        "archive_dir": report.get("archive_dir"),
+        "note_chunk_count": report.get("note_chunk_count"),
+        "total_expected_notes": verification.get("total_expected_notes"),
+        "total_actual_notes": verification.get("total_actual_notes"),
+        "failed_clips": [item for item in verification.get("clips", []) if not item.get("ok")],
+    }
 
 
 def resolve_track_names(tracks, names):
