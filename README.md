@@ -71,17 +71,16 @@ Run the full local environment diagnosis:
 uv run tordo doctor
 ```
 
-Check only the low-level bridge:
+Check the bridge socket:
 
 ```bash
-uv run tordo bridge doctor
-uv run tordo bridge ping
+uv run tordo ping
 ```
 
 Read the current Live Set:
 
 ```bash
-uv run tordo bridge snapshot
+uv run tordo snapshot
 ```
 
 Search Live Browser items:
@@ -140,7 +139,7 @@ Put local MIDI test files in `test_midi/`.
 Generate a role-based import plan:
 
 ```bash
-uv run tordo plan midi-file test_midi/axel_F.mid \
+uv run tordo dev plan midi-file test_midi/axel_F.mid \
   --prefix "Axel F" \
   --scene-name "Axel F Full" \
   --out artifacts/tmp/axel-f-plan.json
@@ -158,7 +157,7 @@ uv run tordo apply-plan artifacts/tmp/axel-f-plan.json \
 For larger MIDI files, split note writes into chunk plans so each bridge request stays small:
 
 ```bash
-uv run tordo plan midi-file test_midi/rasputin.mid \
+uv run tordo dev plan midi-file test_midi/rasputin.mid \
   --prefix "Rasputin" \
   --scene-name "Rasputin Full" \
   --tempo 122 \
@@ -171,7 +170,7 @@ uv run tordo plan midi-file test_midi/rasputin.mid \
 Run the same flow as an end-to-end proof:
 
 ```bash
-uv run tordo proof midi-import test_midi/rasputin.mid \
+uv run tordo dev proof midi-import test_midi/rasputin.mid \
   --prefix "Rasputin" \
   --scene-name "Rasputin Full" \
   --tempo 122 \
