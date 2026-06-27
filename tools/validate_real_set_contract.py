@@ -64,7 +64,7 @@ def main(argv=None):
 
     add_basic_profile_checks(report, profile)
     run_preflight_refusal_checks(report, snapshot, profile)
-    run_dry_run_checks(report, snapshot, args.host, args.port, args.timeout)
+    run_dry_run_checks(report, snapshot, profile, args.host, args.port, args.timeout)
 
     report["ok"] = not any(check["status"] == "failed" for check in report["checks"])
     report["summary"] = summarize_checks(report["checks"])
@@ -195,12 +195,14 @@ def add_basic_profile_checks(report, profile):
     coverage = profile["coverage"]
     add_check(report, "bridge_snapshot_read", "passed", "snapshot and set_notes were read successfully")
     for key in [
+        "has_named_song",
         "has_duplicate_tracks",
         "has_duplicate_scenes",
         "has_duplicate_same_track_clips",
         "has_midi_clips",
         "has_audio_clips",
         "has_foldable_tracks",
+        "has_return_tracks",
     ]:
         status = "passed" if coverage.get(key) else "skipped"
         add_check(report, "coverage_%s" % key, status, coverage_message(key, coverage.get(key)))
@@ -291,7 +293,7 @@ def expect_preflight_refusal(report, snapshot, name, plan, expected_text):
     add_check(report, name, "failed", "preflight accepted a plan that should have been refused")
 
 
-def run_dry_run_checks(report, snapshot, host, port, timeout):
+def run_dry_run_checks(report, snapshot, profile, host, port, timeout):
     track = first_track(snapshot)
     scene = first_scene(snapshot)
     midi_clip = first_midi_clip(snapshot)
@@ -455,6 +457,67 @@ def run_dry_run_checks(report, snapshot, host, port, timeout):
     else:
         add_check(report, "structured_clip_scene_context_dry_run", "skipped", "no MIDI clip found")
         add_check(report, "bridge_expected_clip_name_guard_refusal", "skipped", "no MIDI clip found")
+
+    duplicate_clip_context = duplicate_clip_with_unique_scene_context(snapshot, profile)
+    if duplicate_clip_context:
+        run_bridge_dry_run(
+            report,
+            snapshot,
+            "duplicate_clip_unique_scene_context_dry_run",
+            {
+                "plan_version": 1,
+                "name": "real-set-validation-duplicate-clip-unique-scene-context",
+                "operations": [
+                    {
+                        "type": "quantize_clip",
+                        "track_selector": {
+                            "index": duplicate_clip_context["track_index"],
+                            "expected_name": duplicate_clip_context["track_name"],
+                        },
+                        "scene_selector": {"name": duplicate_clip_context["scene_name"]},
+                        "clip_selector": {"name": duplicate_clip_context["clip_name"]},
+                        "quantization_grid": 5,
+                    }
+                ],
+            },
+            host,
+            port,
+            timeout,
+        )
+    elif (profile.get("duplicates") or {}).get("same_track_clips"):
+        add_check(
+            report,
+            "duplicate_clip_unique_scene_context_dry_run",
+            "skipped",
+            "duplicate clip names found, but none has a unique scene name context",
+        )
+    else:
+        add_check(
+            report,
+            "duplicate_clip_unique_scene_context_dry_run",
+            "skipped",
+            "no duplicate clip names found",
+        )
+
+
+def duplicate_clip_with_unique_scene_context(snapshot, profile):
+    scene_name_counts = defaultdict(int)
+    for scene in snapshot.get("scenes") or []:
+        name = scene.get("name")
+        if name:
+            scene_name_counts[name] += 1
+
+    for duplicate in ((profile.get("duplicates") or {}).get("same_track_clips") or []):
+        for match in duplicate.get("matches") or []:
+            scene_name = match.get("scene_name")
+            if scene_name and scene_name_counts[scene_name] == 1:
+                return {
+                    "track_index": duplicate.get("track_index"),
+                    "track_name": duplicate.get("track_name"),
+                    "clip_name": duplicate.get("clip_name"),
+                    "scene_name": scene_name,
+                }
+    return None
 
 
 def run_bridge_dry_run(report, snapshot, name, plan, host, port, timeout, expected_bridge_error=None):
