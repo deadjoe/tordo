@@ -317,6 +317,25 @@ def run_dry_run_checks(report, snapshot, host, port, timeout):
             port,
             timeout,
         )
+        run_bridge_guard_refusal(
+            report,
+            "bridge_expected_track_name_guard_refusal",
+            {
+                "plan_version": 1,
+                "name": "real-set-validation-expected-track-name-guard",
+                "operations": [
+                    {
+                        "type": "set_track_mixer",
+                        "track_index": track["index"],
+                        "expected_track_name": wrong_expected_name(track["name"]),
+                        "volume": volume,
+                    }
+                ],
+            },
+            host,
+            port,
+            timeout,
+        )
         run_bridge_dry_run(
             report,
             snapshot,
@@ -342,6 +361,7 @@ def run_dry_run_checks(report, snapshot, host, port, timeout):
         )
     else:
         add_check(report, "structured_track_position_dry_run", "skipped", "no regular track found")
+        add_check(report, "bridge_expected_track_name_guard_refusal", "skipped", "no regular track found")
         add_check(report, "missing_browser_item_dry_run_refusal", "skipped", "no regular track found")
 
     if scene:
@@ -360,8 +380,27 @@ def run_dry_run_checks(report, snapshot, host, port, timeout):
             port,
             timeout,
         )
+        run_bridge_guard_refusal(
+            report,
+            "bridge_expected_scene_name_guard_refusal",
+            {
+                "plan_version": 1,
+                "name": "real-set-validation-expected-scene-name-guard",
+                "operations": [
+                    {
+                        "type": "fire_scene",
+                        "scene_index": scene["index"],
+                        "expected_scene_name": wrong_expected_name(scene["name"]),
+                    }
+                ],
+            },
+            host,
+            port,
+            timeout,
+        )
     else:
         add_check(report, "structured_scene_position_dry_run", "skipped", "no scene found")
+        add_check(report, "bridge_expected_scene_name_guard_refusal", "skipped", "no scene found")
 
     if midi_clip:
         run_bridge_dry_run(
@@ -391,8 +430,31 @@ def run_dry_run_checks(report, snapshot, host, port, timeout):
             port,
             timeout,
         )
+        run_bridge_guard_refusal(
+            report,
+            "bridge_expected_clip_name_guard_refusal",
+            {
+                "plan_version": 1,
+                "name": "real-set-validation-expected-clip-name-guard",
+                "operations": [
+                    {
+                        "type": "quantize_clip",
+                        "track_index": midi_clip["track_index"],
+                        "expected_track_name": midi_clip["track_name"],
+                        "scene_index": midi_clip["scene_index"],
+                        "expected_scene_name": midi_clip["scene_name"],
+                        "expected_clip_name": wrong_expected_name(midi_clip["clip_name"]),
+                        "quantization_grid": 5,
+                    }
+                ],
+            },
+            host,
+            port,
+            timeout,
+        )
     else:
         add_check(report, "structured_clip_scene_context_dry_run", "skipped", "no MIDI clip found")
+        add_check(report, "bridge_expected_clip_name_guard_refusal", "skipped", "no MIDI clip found")
 
 
 def run_bridge_dry_run(report, snapshot, name, plan, host, port, timeout, expected_bridge_error=None):
@@ -432,6 +494,25 @@ def run_bridge_dry_run(report, snapshot, name, plan, host, port, timeout, expect
         )
     else:
         add_check(report, name, "failed", json.dumps(response.get("error") or response, sort_keys=True))
+
+
+def run_bridge_guard_refusal(report, name, plan, host, port, timeout):
+    response = send_request(
+        "apply_plan",
+        args={"plan": plan, "dry_run": True},
+        host=host,
+        port=port,
+        timeout=timeout,
+    )
+    error = response.get("error") or {}
+    if not response.get("ok") and error.get("code") == "bad_plan" and "Expected" in (error.get("message") or ""):
+        add_check(report, name, "passed", "%s: %s" % (error.get("code"), error.get("message")))
+        return
+    add_check(report, name, "failed", "expected bridge expected-name guard refusal, got %s" % response)
+
+
+def wrong_expected_name(actual_name):
+    return "__tordo_expected_name_mismatch__%s" % (actual_name or "unnamed")
 
 
 def first_track(snapshot):
