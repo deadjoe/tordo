@@ -8,6 +8,7 @@ from tordo.archive import export_archive
 from tordo.bridge_client import BridgeConnectionError, BridgeResponseError, require_ok, send_request
 from tordo.client import main as bridge_main
 from tordo.diff import diff_archives, write_diff_markdown
+from tordo.doctor import doctor_report, dumps_report
 from tordo.midi_import import (
     DEFAULT_NOTE_CHUNK_SIZE,
     midi_file_note_chunk_plans,
@@ -64,6 +65,15 @@ def main(argv=None):
     diff_parser.add_argument("--md-out", default=tmp_path("archive-diff.md"))
 
     subparsers.add_parser("schema", help="Print the agent-facing plan selector schema.")
+
+    doctor_parser = subparsers.add_parser("doctor", help="Diagnose local tordo, Ableton Live, and bridge setup.")
+    doctor_parser.add_argument("--host", default="127.0.0.1")
+    doctor_parser.add_argument("--port", default=8765, type=int)
+    doctor_parser.add_argument("--timeout", default=5.0, type=float)
+    doctor_parser.add_argument("--live-app", help="Explicit Ableton Live .app path.")
+    doctor_parser.add_argument("--remote-script", help="Explicit TordoBridge Remote Script directory.")
+    doctor_parser.add_argument("--minimum-live-version", default="12.4")
+    doctor_parser.add_argument("--compact", action="store_true")
 
     browser_parser = subparsers.add_parser("browser-items", help="Search Live Browser items through the bridge.")
     browser_parser.add_argument("--query", default="")
@@ -317,6 +327,17 @@ def main(argv=None):
     if args.command == "schema":
         print(json.dumps(agent_plan_schema(), indent=2, sort_keys=True))
         return 0
+    if args.command == "doctor":
+        report = doctor_report(
+            host=args.host,
+            port=args.port,
+            timeout=args.timeout,
+            live_app=args.live_app,
+            remote_script=args.remote_script,
+            minimum_live_version=args.minimum_live_version,
+        )
+        print(dumps_report(report, compact=args.compact))
+        return 0 if report.get("ok") else 2
     if args.command == "browser-items":
         try:
             response = send_request(

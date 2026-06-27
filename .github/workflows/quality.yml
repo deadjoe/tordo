@@ -33,4 +33,4 @@ jobs:
         run: uv run python -m unittest discover -s tests -p 'test*.py'
 
       - name: Compile Python
-        run: uv run python -m py_compile tordo/*.py remote-script/TordoBridge/bridge.py tools/*.py tests/test_plan_preflight.py
+        run: uv run python -m py_compile tordo/*.py remote-script/TordoBridge/bridge.py tools/*.py tests/*.py

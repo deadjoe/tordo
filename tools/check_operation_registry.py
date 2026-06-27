@@ -6,6 +6,7 @@ from tordo.schema import agent_plan_schema
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 BRIDGE_PATH = REPO_ROOT / "remote-script" / "TordoBridge" / "bridge.py"
+DOCTOR_PATH = REPO_ROOT / "tordo" / "doctor.py"
 
 
 def main():
@@ -13,6 +14,7 @@ def main():
     schema_targets = schema["operation_targets"]
     schema_ops = set(schema_targets)
     bridge_tree = ast.parse(BRIDGE_PATH.read_text())
+    doctor_tree = ast.parse(DOCTOR_PATH.read_text())
     capability_ops = set(extract_capability_operations(bridge_tree))
     dispatch_ops = set(extract_dispatch_operations(bridge_tree))
 
@@ -45,6 +47,7 @@ def main():
         set(schema["destructive_operations"]),
         bridge_tree,
     )
+    check_bridge_version_sync(failures, bridge_tree, doctor_tree)
 
     if failures:
         raise SystemExit("\n".join(failures))
@@ -117,6 +120,26 @@ def calls_require_allow_destructive(function, operation):
         if constant_value(node.args[1]) == operation:
             return True
     return False
+
+
+def check_bridge_version_sync(failures, bridge_tree, doctor_tree):
+    bridge_version = find_module_constant(bridge_tree, "BRIDGE_VERSION")
+    doctor_expected_version = find_module_constant(doctor_tree, "EXPECTED_BRIDGE_VERSION")
+    if bridge_version != doctor_expected_version:
+        failures.append(
+            "doctor EXPECTED_BRIDGE_VERSION %r does not match bridge BRIDGE_VERSION %r"
+            % (doctor_expected_version, bridge_version)
+        )
+
+
+def find_module_constant(tree, name):
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Name) and target.id == name:
+                return constant_value(node.value)
+    raise ValueError("module constant not found: %s" % name)
 
 
 def literal_string_list(node, label):
