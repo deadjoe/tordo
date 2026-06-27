@@ -5,7 +5,14 @@ from pathlib import Path
 
 from tordo.analysis import analyze_set_notes, format_markdown, load_set_notes
 from tordo.archive import export_archive
-from tordo.bridge_client import BridgeConnectionError, BridgeResponseError, require_ok, send_request
+from tordo.bridge_client import (
+    DEFAULT_HOST,
+    DEFAULT_PORT,
+    BridgeConnectionError,
+    BridgeResponseError,
+    require_ok,
+    send_request,
+)
 from tordo.client import main as bridge_main
 from tordo.diff import diff_archives, write_diff_markdown
 from tordo.doctor import doctor_report, dumps_report
@@ -41,10 +48,129 @@ from tordo.verification import (
     verify_track_mixer,
 )
 
+BRIDGE_READ_COMMANDS = {
+    "ping",
+    "capabilities",
+    "selected",
+    "selected-notes",
+    "snapshot",
+    "set-notes",
+    "clip-notes",
+}
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(description="Tordo CLI.")
-    subparsers = parser.add_subparsers(dest="command", required=True)
+STABLE_COMMANDS = [
+    "export",
+    "analyze",
+    "diff",
+    "schema",
+    "doctor",
+    "ping",
+    "capabilities",
+    "selected",
+    "selected-notes",
+    "snapshot",
+    "set-notes",
+    "clip-notes",
+    "browser-items",
+    "apply-plan",
+    "dev",
+]
+
+DEV_COMMANDS = {
+    "plan",
+    "delete-tracks-by-name",
+    "verify-note-metadata",
+    "verify-track-mixer",
+    "verify-device-parameters",
+    "verify-note-edit",
+    "bridge",
+    "proof",
+}
+
+DEV_HELP = """Developer commands:
+  tordo dev plan ...
+  tordo dev delete-tracks-by-name ...
+  tordo dev verify-note-metadata ...
+  tordo dev verify-track-mixer ...
+  tordo dev verify-device-parameters ...
+  tordo dev verify-note-edit ...
+  tordo dev bridge ...
+  tordo dev proof ...
+
+These commands are for local proofs, fixtures, and bridge debugging. They are not
+part of the stable agent contract.
+"""
+
+
+class StableHelpFormatter(argparse.HelpFormatter):
+    def _iter_indented_subactions(self, action):
+        for subaction in super()._iter_indented_subactions(action):
+            if subaction.help == argparse.SUPPRESS:
+                continue
+            yield subaction
+
+
+def add_bridge_runtime_args(parser, default_timeout=5.0):
+    parser.add_argument("--host", default=DEFAULT_HOST)
+    parser.add_argument("--port", default=DEFAULT_PORT, type=int)
+    parser.add_argument("--timeout", default=default_timeout, type=float)
+    parser.add_argument("--compact", action="store_true")
+
+
+def run_bridge_read_command(args):
+    command, request_args = bridge_read_request(args)
+    try:
+        response = send_request(
+            command,
+            args=request_args,
+            host=args.host,
+            port=args.port,
+            timeout=args.timeout,
+        )
+    except BridgeConnectionError as exc:
+        response = {
+            "ok": False,
+            "error": {
+                "code": "connection_failed",
+                "message": str(exc),
+            },
+        }
+    print_json(response, compact=args.compact)
+    return 0 if response.get("ok") else 2
+
+
+def bridge_read_request(args):
+    if args.command == "selected-notes":
+        return "selected_notes", {"limit": args.limit, "diagnostic": args.diagnostic}
+    if args.command == "set-notes":
+        return "set_notes", {"limit_per_clip": args.limit_per_clip}
+    if args.command == "clip-notes":
+        return (
+            "clip_notes",
+            {
+                "track_index": args.track_index,
+                "scene_index": args.scene_index,
+                "limit": args.limit,
+                "diagnostic": args.diagnostic,
+            },
+        )
+    return args.command, {}
+
+
+def print_json(payload, compact=False):
+    if compact:
+        print(json.dumps(payload, sort_keys=True, separators=(",", ":")))
+        return
+    print(json.dumps(payload, indent=2, sort_keys=True))
+
+
+def main(argv=None, prog="tordo"):
+    parser = argparse.ArgumentParser(prog=prog, description="Tordo CLI.", formatter_class=StableHelpFormatter)
+    subparsers = parser.add_subparsers(
+        dest="command",
+        required=True,
+        metavar="{%s}" % ",".join(STABLE_COMMANDS),
+    )
 
     export_parser = subparsers.add_parser("export", help="Export the current Live Set into an archive directory.")
     export_parser.add_argument("--out")
@@ -75,6 +201,43 @@ def main(argv=None):
     doctor_parser.add_argument("--minimum-live-version", default="12.4")
     doctor_parser.add_argument("--compact", action="store_true")
 
+    ping_parser = subparsers.add_parser("ping", help="Verify that TordoBridge is reachable.")
+    add_bridge_runtime_args(ping_parser)
+
+    capabilities_parser = subparsers.add_parser(
+        "capabilities",
+        help="Read bridge commands, limits, and supported plan operations.",
+    )
+    add_bridge_runtime_args(capabilities_parser)
+
+    selected_parser = subparsers.add_parser("selected", help="Read the current selected Live context.")
+    add_bridge_runtime_args(selected_parser)
+
+    selected_notes_parser = subparsers.add_parser(
+        "selected-notes",
+        help="Read MIDI notes from the currently selected/detail clip.",
+    )
+    selected_notes_parser.add_argument("--limit", default=5000, type=int)
+    selected_notes_parser.add_argument("--diagnostic", action="store_true")
+    add_bridge_runtime_args(selected_notes_parser)
+
+    snapshot_parser = subparsers.add_parser(
+        "snapshot",
+        help="Read current tracks, scenes, clips, devices, mixer state, and selected context.",
+    )
+    add_bridge_runtime_args(snapshot_parser)
+
+    set_notes_parser = subparsers.add_parser("set-notes", help="Export MIDI notes from the current Set.")
+    set_notes_parser.add_argument("--limit-per-clip", default=5000, type=int)
+    add_bridge_runtime_args(set_notes_parser)
+
+    clip_notes_parser = subparsers.add_parser("clip-notes", help="Read MIDI notes for a specific clip.")
+    clip_notes_parser.add_argument("--track-index", required=True, type=int)
+    clip_notes_parser.add_argument("--scene-index", required=True, type=int)
+    clip_notes_parser.add_argument("--limit", default=5000, type=int)
+    clip_notes_parser.add_argument("--diagnostic", action="store_true")
+    add_bridge_runtime_args(clip_notes_parser)
+
     browser_parser = subparsers.add_parser("browser-items", help="Search Live Browser items through the bridge.")
     browser_parser.add_argument("--query", default="")
     browser_parser.add_argument("--exact", action="store_true")
@@ -87,7 +250,15 @@ def main(argv=None):
     browser_parser.add_argument("--port", default=8765, type=int)
     browser_parser.add_argument("--timeout", default=30.0, type=float)
 
-    plan_parser = subparsers.add_parser("plan", help="Generate a write plan without touching Live.")
+    dev_parser = subparsers.add_parser(
+        "dev",
+        help="Run developer-only plan generators, proof harnesses, and bridge debugging commands.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=DEV_HELP,
+    )
+    dev_parser.add_argument("dev_args", nargs=argparse.REMAINDER, help=argparse.SUPPRESS)
+
+    plan_parser = subparsers.add_parser("plan", help=argparse.SUPPRESS)
     plan_subparsers = plan_parser.add_subparsers(dest="plan_command", required=True)
     demo_parser = plan_subparsers.add_parser("demo-melody", help="Create a simple demo melody plan.")
     demo_parser.add_argument("--out", default=tmp_path("demo-melody-plan.json"))
@@ -202,10 +373,7 @@ def main(argv=None):
         help="Disable automatic deletion of default empty tracks when applying a creation plan to an empty project.",
     )
 
-    delete_tracks_parser = subparsers.add_parser(
-        "delete-tracks-by-name",
-        help="Resolve exact track names to indices, then dry-run or delete matching tracks.",
-    )
+    delete_tracks_parser = subparsers.add_parser("delete-tracks-by-name", help=argparse.SUPPRESS)
     delete_tracks_parser.add_argument(
         "--name",
         action="append",
@@ -223,10 +391,7 @@ def main(argv=None):
     delete_tracks_parser.add_argument("--port", default=8765, type=int)
     delete_tracks_parser.add_argument("--timeout", default=30.0, type=float)
 
-    verify_parser = subparsers.add_parser(
-        "verify-note-metadata",
-        help="Verify note metadata in a Live clip against a plan.",
-    )
+    verify_parser = subparsers.add_parser("verify-note-metadata", help=argparse.SUPPRESS)
     verify_parser.add_argument("plan")
     verify_parser.add_argument("--track-index", type=int)
     verify_parser.add_argument("--track-name")
@@ -237,10 +402,7 @@ def main(argv=None):
     verify_parser.add_argument("--port", default=8765, type=int)
     verify_parser.add_argument("--timeout", default=20.0, type=float)
 
-    verify_mixer_parser = subparsers.add_parser(
-        "verify-track-mixer",
-        help="Verify track state and mixer values in Live against a plan.",
-    )
+    verify_mixer_parser = subparsers.add_parser("verify-track-mixer", help=argparse.SUPPRESS)
     verify_mixer_parser.add_argument("plan")
     verify_mixer_parser.add_argument("--track-index", type=int)
     verify_mixer_parser.add_argument("--track-name")
@@ -248,19 +410,13 @@ def main(argv=None):
     verify_mixer_parser.add_argument("--port", default=8765, type=int)
     verify_mixer_parser.add_argument("--timeout", default=20.0, type=float)
 
-    verify_device_parser = subparsers.add_parser(
-        "verify-device-parameters",
-        help="Verify device parameter values in Live against a plan.",
-    )
+    verify_device_parser = subparsers.add_parser("verify-device-parameters", help=argparse.SUPPRESS)
     verify_device_parser.add_argument("plan")
     verify_device_parser.add_argument("--host", default="127.0.0.1")
     verify_device_parser.add_argument("--port", default=8765, type=int)
     verify_device_parser.add_argument("--timeout", default=20.0, type=float)
 
-    verify_note_edit_parser = subparsers.add_parser(
-        "verify-note-edit",
-        help="Verify final note state in Live against a note edit proof plan.",
-    )
+    verify_note_edit_parser = subparsers.add_parser("verify-note-edit", help=argparse.SUPPRESS)
     verify_note_edit_parser.add_argument("plan")
     verify_note_edit_parser.add_argument("--track-index", type=int)
     verify_note_edit_parser.add_argument("--track-name")
@@ -271,10 +427,10 @@ def main(argv=None):
     verify_note_edit_parser.add_argument("--port", default=8765, type=int)
     verify_note_edit_parser.add_argument("--timeout", default=20.0, type=float)
 
-    bridge_parser = subparsers.add_parser("bridge", help="Forward raw bridge commands to tordo.client.")
+    bridge_parser = subparsers.add_parser("bridge", help=argparse.SUPPRESS)
     bridge_parser.add_argument("bridge_args", nargs=argparse.REMAINDER)
 
-    proof_parser = subparsers.add_parser("proof", help="Run end-to-end runtime proof harnesses.")
+    proof_parser = subparsers.add_parser("proof", help=argparse.SUPPRESS)
     proof_subparsers = proof_parser.add_subparsers(dest="proof_command", required=True)
     midi_import_proof = proof_subparsers.add_parser(
         "midi-import",
@@ -338,6 +494,8 @@ def main(argv=None):
         )
         print(dumps_report(report, compact=args.compact))
         return 0 if report.get("ok") else 2
+    if args.command in BRIDGE_READ_COMMANDS:
+        return run_bridge_read_command(args)
     if args.command == "browser-items":
         try:
             response = send_request(
@@ -361,6 +519,18 @@ def main(argv=None):
             return 1
         print(json.dumps(payload, indent=2, sort_keys=True))
         return 0
+    if args.command == "dev":
+        dev_args = list(args.dev_args or [])
+        if dev_args and dev_args[0] == "--":
+            dev_args = dev_args[1:]
+        if not dev_args:
+            print(DEV_HELP)
+            return 0
+        if dev_args[0] not in DEV_COMMANDS:
+            print("unknown developer command: %s" % dev_args[0], file=sys.stderr)
+            print(DEV_HELP, file=sys.stderr)
+            return 2
+        return main(dev_args, prog="tordo dev")
     if args.command == "plan":
         if args.plan_command == "demo-melody":
             plan = demo_melody_plan(
