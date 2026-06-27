@@ -65,7 +65,13 @@ Input and Output can stay set to `None`.
 
 ## Basic Checks
 
-Check that the bridge is reachable:
+Run the full local environment diagnosis:
+
+```bash
+uv run tordo doctor
+```
+
+Check only the low-level bridge:
 
 ```bash
 uv run tordo bridge doctor
