@@ -1,10 +1,46 @@
-def requested_name(payload, name_field, selector_field):
-    if payload.get(name_field) is not None:
-        return payload.get(name_field)
+def requested_selector_value(payload, field, selector_field, selector_key):
+    top_level_value = payload.get(field)
     selector = payload.get(selector_field)
+    selector_value = None
     if isinstance(selector, dict):
-        return selector.get("name")
-    return None
+        selector_value = selector.get(selector_key)
+    if top_level_value is not None and selector_value is not None and top_level_value != selector_value:
+        raise ValueError(
+            "conflicting %s %r and %s.%s %r"
+            % (field, top_level_value, selector_field, selector_key, selector_value)
+        )
+    if top_level_value is not None:
+        return top_level_value
+    return selector_value
+
+
+def requested_name(payload, name_field, selector_field):
+    return requested_selector_value(payload, name_field, selector_field, "name")
+
+
+def requested_expected_name(payload, expected_name_field, selector_field):
+    return requested_selector_value(payload, expected_name_field, selector_field, "expected_name")
+
+
+def requested_index(payload, index_field, selector_field):
+    top_level_value = payload.get(index_field)
+    selector = payload.get(selector_field)
+    selector_value = None
+    if isinstance(selector, dict):
+        selector_value = selector.get("index")
+    if top_level_value is not None and selector_value is not None:
+        top_level_index = required_index(top_level_value, index_field)
+        selector_index = required_index(selector_value, "%s.index" % selector_field)
+        if top_level_index != selector_index:
+            raise ValueError(
+                "conflicting %s %r and %s.index %r"
+                % (index_field, top_level_value, selector_field, selector_value)
+            )
+        return top_level_index
+    raw_value = top_level_value if top_level_value is not None else selector_value
+    if raw_value is None:
+        return None
+    return required_index(raw_value, index_field)
 
 
 def normalize_track_type(track_type):

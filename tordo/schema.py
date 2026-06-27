@@ -6,11 +6,17 @@ def agent_plan_schema():
         "schema_version": PLAN_SCHEMA_VERSION,
         "plan_version": 1,
         "selector_policy": {
-            "track": "Use track_name or track_selector.name for existing regular/return tracks.",
-            "scene": "Use scene_name or scene_selector.name when scene names are unique.",
+            "track": (
+                "Use track_name or track_selector.name for unique existing regular/return tracks. "
+                "Use track_selector.index plus track_selector.expected_name only as position-context validation."
+            ),
+            "scene": (
+                "Use scene_name or scene_selector.name when scene names are unique. "
+                "Use scene_selector.index plus scene_selector.expected_name only as position-context validation."
+            ),
             "clip": (
                 "Use clip_name or clip_selector.name with a track selector; "
-                "duplicate clip names on one track require scene_name or scene_index context."
+                "duplicate clip names on one track require scene_name, scene_index, or scene_selector context."
             ),
             "indices": (
                 "Indices are execution details. If a name selector is present, "
@@ -51,9 +57,32 @@ def agent_plan_schema():
             "delete_scene": {"requires": {"allow_destructive": True}},
         },
         "target_selector_fields": {
-            "track": ["track_name", "track_selector.name", "track_index"],
-            "scene": ["scene_name", "scene_selector.name", "scene_index"],
-            "clip": ["clip_name", "clip_selector.name", "scene_name context", "scene_index context"],
+            "track": [
+                "track_name",
+                "track_selector.name",
+                "track_index",
+                "track_selector.index",
+                "expected_track_name",
+                "track_selector.expected_name",
+            ],
+            "scene": [
+                "scene_name",
+                "scene_selector.name",
+                "scene_index",
+                "scene_selector.index",
+                "expected_scene_name",
+                "scene_selector.expected_name",
+            ],
+            "clip": [
+                "clip_name",
+                "clip_selector.name",
+                "expected_clip_name",
+                "clip_selector.expected_name",
+                "scene_name context",
+                "scene_selector.name context",
+                "scene_index context",
+                "scene_selector.index context",
+            ],
             "return_track": ["track_type=return", "track_name", "track_index"],
             "master_track": ["track_type=master", "track_name"],
             "browser_item": ["browser_uri", "browser_name", "browser_query", "browser_roots"],
