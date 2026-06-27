@@ -10,11 +10,12 @@ def agent_plan_schema():
             "scene": "Use scene_name or scene_selector.name when scene names are unique.",
             "clip": (
                 "Use clip_name or clip_selector.name with a track selector; "
-                "duplicate clip names on one track are refused."
+                "duplicate clip names on one track require scene_name or scene_index context."
             ),
             "indices": (
                 "Indices are execution details. If a name selector is present, "
-                "preflight resolves the current index from a fresh snapshot."
+                "preflight resolves the current index from a fresh snapshot. "
+                "Index plus expected_*_name is position-context validation, not durable identity."
             ),
             "guards": ["expected_track_name", "expected_scene_name", "expected_clip_name"],
         },
@@ -52,7 +53,7 @@ def agent_plan_schema():
         "target_selector_fields": {
             "track": ["track_name", "track_selector.name", "track_index"],
             "scene": ["scene_name", "scene_selector.name", "scene_index"],
-            "clip": ["clip_name", "clip_selector.name"],
+            "clip": ["clip_name", "clip_selector.name", "scene_name context", "scene_index context"],
             "return_track": ["track_type=return", "track_name", "track_index"],
             "master_track": ["track_type=master", "track_name"],
             "browser_item": ["browser_uri", "browser_name", "browser_query", "browser_roots"],
