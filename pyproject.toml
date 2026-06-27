@@ -1,7 +1,7 @@
 [project]
 name = "tordo"
 version = "0.1.0"
-description = "Agent-friendly experiments for reading and controlling Ableton Live."
+description = "Agent-facing CLI toolkit for safely inspecting and controlling Ableton Live."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
