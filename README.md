@@ -236,7 +236,7 @@ exports/                       Ignored Live Set archives
 ## Known Limits
 
 - Existing clip renaming is not yet exposed as a first-class operation.
-- Existing object selectors still prefer unique names. Duplicate track and scene names are refused by name; current index plus `expected_*_name` can validate position but is not durable object identity. Same-track duplicate clip names require scene context.
+- Existing object selectors still prefer unique names through `*_selector.name`. Duplicate track and scene names are refused by name; selector index plus `expected_name` can validate position but is not durable object identity. Same-track duplicate clip names require scene context.
 - The current system is human-ear-in-the-loop. Tordo can inspect structure, notes, parameters, and diffs, but it does not hear audio quality by itself.
 - Browser-backed sound selection is user-library dependent. Agent workflows must search available Browser items before using racks or presets in portable plans.
 - Some Ableton Browser roots are not fully mapped yet, including `All`, `Modulators`, `Grooves`, `Tunings`, and `Templates`.

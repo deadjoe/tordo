@@ -29,5 +29,8 @@ jobs:
       - name: Operation registry
         run: uv run python tools/check_operation_registry.py
 
+      - name: Unit tests
+        run: uv run python -m unittest discover -s tests -p 'test*.py'
+
       - name: Compile Python
         run: uv run python -m py_compile tordo/*.py remote-script/TordoBridge/bridge.py tools/check_operation_registry.py

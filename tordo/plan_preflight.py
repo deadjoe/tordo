@@ -2,6 +2,8 @@ from copy import deepcopy
 
 from tordo.selectors import (
     normalize_track_type,
+    requested_expected_name,
+    requested_index,
     requested_name,
     resolve_snapshot_clip_slot,
     resolve_snapshot_scene,
@@ -76,13 +78,16 @@ def prepare_existing_track_target(operation, snapshot, operation_index, report):
 
     track_type = normalize_track_type(operation.get("track_type", "track"))
     track_name = requested_name(operation, "track_name", "track_selector")
-    expected_name = operation.get("expected_track_name")
+    track_index = requested_index(operation, "track_index", "track_selector")
+    expected_name = requested_expected_name(operation, "expected_track_name", "track_selector")
 
     if track_name is not None and expected_name is not None and track_name != expected_name:
         raise ValueError(
             "operation %s has conflicting track_name %r and expected_track_name %r"
             % (operation_index, track_name, expected_name)
         )
+    if track_index is not None:
+        operation["track_index"] = track_index
 
     if track_name is not None:
         target = resolve_snapshot_track(
@@ -100,10 +105,11 @@ def prepare_existing_track_target(operation, snapshot, operation_index, report):
         target = resolve_snapshot_track(
             snapshot,
             track_type=track_type,
-            index=operation.get("track_index"),
+            index=track_index,
             label="operation %s" % operation_index,
         )
         validate_item_name(target, expected_name, "operation %s %s track" % (operation_index, track_type))
+        operation["expected_track_name"] = expected_name
         report["validated_tracks"].append(track_report(operation_index, track_type, target))
 
 
@@ -115,13 +121,16 @@ def prepare_scene_target(operation, snapshot, operation_index, report):
         return
 
     scene_name = requested_name(operation, "scene_name", "scene_selector")
-    expected_name = operation.get("expected_scene_name")
+    scene_index = requested_index(operation, "scene_index", "scene_selector")
+    expected_name = requested_expected_name(operation, "expected_scene_name", "scene_selector")
 
     if scene_name is not None and expected_name is not None and scene_name != expected_name:
         raise ValueError(
             "operation %s has conflicting scene_name %r and expected_scene_name %r"
             % (operation_index, scene_name, expected_name)
         )
+    if scene_index is not None:
+        operation["scene_index"] = scene_index
 
     if scene_name is not None:
         scene = resolve_snapshot_scene(snapshot, name=scene_name, label="operation %s" % operation_index)
@@ -133,10 +142,11 @@ def prepare_scene_target(operation, snapshot, operation_index, report):
     if expected_name is not None:
         scene = resolve_snapshot_scene(
             snapshot,
-            index=operation.get("scene_index"),
+            index=scene_index,
             label="operation %s" % operation_index,
         )
         validate_item_name(scene, expected_name, "operation %s scene" % operation_index)
+        operation["expected_scene_name"] = expected_name
         report["resolved_scenes"].append(scene_report(operation_index, scene))
 
 
@@ -148,7 +158,7 @@ def prepare_clip_target(operation, snapshot, operation_index, report):
         return
 
     clip_name = requested_name(operation, "clip_name", "clip_selector")
-    expected_clip_name = operation.get("expected_clip_name")
+    expected_clip_name = requested_expected_name(operation, "expected_clip_name", "clip_selector")
     if clip_name is not None and expected_clip_name is not None and clip_name != expected_clip_name:
         raise ValueError(
             "operation %s has conflicting clip_name %r and expected_clip_name %r"
@@ -159,11 +169,12 @@ def prepare_clip_target(operation, snapshot, operation_index, report):
 
     track = operation_track(snapshot, operation, operation_index)
     scene_name = requested_name(operation, "scene_name", "scene_selector")
+    scene_index = requested_index(operation, "scene_index", "scene_selector")
     scene, slot = resolve_snapshot_clip_slot(
         snapshot,
         track,
         scene_name=scene_name,
-        scene_index=operation.get("scene_index"),
+        scene_index=scene_index,
         clip_name=clip_name or expected_clip_name,
         label="operation %s" % operation_index,
     )
@@ -186,6 +197,7 @@ def prepare_clip_target(operation, snapshot, operation_index, report):
 def operation_track(snapshot, operation, operation_index):
     track_type = normalize_track_type(operation.get("track_type", "track"))
     track_name = requested_name(operation, "track_name", "track_selector")
+    track_index = requested_index(operation, "track_index", "track_selector")
     if track_name is not None:
         return resolve_snapshot_track(
             snapshot,
@@ -196,7 +208,7 @@ def operation_track(snapshot, operation, operation_index):
     return resolve_snapshot_track(
         snapshot,
         track_type=track_type,
-        index=operation.get("track_index"),
+        index=track_index,
         label="operation %s" % operation_index,
     )
 
