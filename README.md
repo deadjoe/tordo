@@ -6,7 +6,7 @@
 
 Tordo is an agent-facing Ableton Live control toolkit.
 
-The project runs a MIDI Remote Script bridge inside Ableton Live and keeps agent workflow, planning, validation, packaging, and future adapters in an external Python CLI. The product goal is to let an AI agent inspect, plan, and safely mutate a Live Set through a stable command-line and JSON-plan contract while avoiding stale index assumptions and accidental overwrites.
+The project runs a MIDI Remote Script bridge inside Ableton Live and keeps agent workflow, planning, validation, and packaging in an external Python CLI. The product goal is to let an AI agent inspect, plan, and safely mutate a Live Set through a stable command-line and JSON-plan contract while avoiding stale index assumptions and accidental overwrites.
 
 ## Status
 
@@ -30,9 +30,9 @@ The intended stable contract is:
 
 - `tordo` CLI commands plus explicit JSON plan documents.
 - Runtime self-description through `tordo schema` and bridge `capabilities`.
-- Thin agent-surface packages, including a future `SKILL.md`, that teach agents to use the same CLI/schema contract.
+- A packaged agent Skill, centered on `SKILL.md`, that teaches agents to use the same CLI/schema contract.
 
-MCP, HTTP JSON-RPC, local UI, and agent-specific skills are adapters over that contract, not separate sources of truth.
+The current product path is Skill plus CLI. Other integration surfaces are intentionally out of scope until the core contract is clean and validated.
 
 ## Requirements
 
@@ -226,7 +226,7 @@ exports/                       Ignored Live Set archives
 ## Design Boundaries
 
 - Live does not hot-reload Remote Scripts. Bridge changes require a Live restart.
-- Keep AI workflow, generation, analysis, preflight, packaging, and agent adapters outside Live.
+- Keep AI workflow, generation, analysis, preflight, packaging, and Skill logic outside Live.
 - Keep the Live-side bridge stable and conservative. It currently owns the safe plan executor and Live API write semantics, so new write operations should be batched and justified.
 - Never assume a previously observed track index is still correct.
 - Resolve names from a fresh snapshot immediately before write operations.
