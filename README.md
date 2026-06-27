@@ -4,13 +4,13 @@
   <img src="assets/tordo_logo.png" alt="tordo logo" width="200" height="200">
 </p>
 
-Tordo is an agent-friendly Ableton Live control experiment.
+Tordo is an agent-facing Ableton Live control toolkit.
 
-The project runs a thin MIDI Remote Script inside Ableton Live and keeps the fast-changing logic in an external Python CLI. The goal is to let an AI coding agent inspect, plan, and safely mutate a Live Set while avoiding stale index assumptions and accidental overwrites.
+The project runs a MIDI Remote Script bridge inside Ableton Live and keeps agent workflow, planning, validation, packaging, and future adapters in an external Python CLI. The product goal is to let an AI agent inspect, plan, and safely mutate a Live Set through a stable command-line and JSON-plan contract while avoiding stale index assumptions and accidental overwrites.
 
 ## Status
 
-This is an early lab project, but the core loop is working:
+Tordo is in developer alpha. The core local control loop is working:
 
 - Read the current Live Set structure, tracks, scenes, clips, devices, mixer state, and MIDI notes.
 - Generate explicit JSON plans outside Live.
@@ -26,10 +26,18 @@ This is an early lab project, but the core loop is working:
 
 The current bridge source version is `TordoBridge 0.8.0`.
 
+The intended stable contract is:
+
+- `tordo` CLI commands plus explicit JSON plan documents.
+- Runtime self-description through `tordo schema` and bridge `capabilities`.
+- Thin agent-surface packages, including a future `SKILL.md`, that teach agents to use the same CLI/schema contract.
+
+MCP, HTTP JSON-RPC, local UI, and agent-specific skills are adapters over that contract, not separate sources of truth.
+
 ## Requirements
 
 - macOS
-- Ableton Live 12.4 Suite
+- Ableton Live 12.4 Suite or newer
 - Python 3.11+
 - `uv`
 
@@ -218,8 +226,8 @@ exports/                       Ignored Live Set archives
 ## Design Boundaries
 
 - Live does not hot-reload Remote Scripts. Bridge changes require a Live restart.
-- Keep the Live-side bridge thin and stable.
-- Put experiments, generation, analysis, preflight, and agent adapters outside Live.
+- Keep AI workflow, generation, analysis, preflight, packaging, and agent adapters outside Live.
+- Keep the Live-side bridge stable and conservative. It currently owns the safe plan executor and Live API write semantics, so new write operations should be batched and justified.
 - Never assume a previously observed track index is still correct.
 - Resolve names from a fresh snapshot immediately before write operations.
 - Dry-run destructive or large writes first.
@@ -228,6 +236,9 @@ exports/                       Ignored Live Set archives
 ## Known Limits
 
 - Existing clip renaming is not yet exposed as a first-class operation.
+- Existing object selectors require unique names today. Duplicate track, scene, or same-track clip names are refused rather than guessed.
+- The current system is human-ear-in-the-loop. Tordo can inspect structure, notes, parameters, and diffs, but it does not hear audio quality by itself.
+- Browser-backed sound selection is user-library dependent. Agent workflows must search available Browser items before using racks or presets in portable plans.
 - Some Ableton Browser roots are not fully mapped yet, including `All`, `Modulators`, `Grooves`, `Tunings`, and `Templates`.
 - `Plug-Ins` returned no items in the latest local browser query and needs a dedicated verification pass.
 - Third-party plug-in internals are limited to parameters exposed through Live's automation model.
@@ -236,5 +247,7 @@ exports/                       Ignored Live Set archives
 
 - [Bridge core](docs/bridge-core.md)
 - [Capability map](docs/capability-map.md)
-- [Closed-loop composition plan](docs/closed-loop-composition-plan.md)
+- [Agent contract](docs/agent-contract.md)
+- [Bridge architecture](docs/bridge-architecture.md)
+- [Human-ear-in-the-loop composition plan](docs/human-ear-in-the-loop-composition.md)
 - [Handoff](docs/HANDOFF.md)
