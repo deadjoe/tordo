@@ -40,12 +40,10 @@ def main():
         "preflight CLIP_TARGET_OPERATIONS",
         CLIP_TARGET_OPERATIONS,
     )
-    compare_sets(
+    check_destructive_guards(
         failures,
-        "destructive operations",
         set(schema["destructive_operations"]),
-        "schema operations",
-        schema_ops & set(schema["destructive_operations"]),
+        bridge_tree,
     )
 
     if failures:
@@ -89,6 +87,36 @@ def find_function(tree, name):
         if isinstance(node, ast.FunctionDef) and node.name == name:
             return node
     raise ValueError("function not found: %s" % name)
+
+
+def check_destructive_guards(failures, destructive_operations, tree):
+    missing_from_schema = sorted(destructive_operations - set(agent_plan_schema()["operation_targets"]))
+    if missing_from_schema:
+        failures.append("destructive operations missing from schema operations: %s" % ", ".join(missing_from_schema))
+    for operation in sorted(destructive_operations):
+        function_name = "apply_%s" % operation
+        try:
+            function = find_function(tree, function_name)
+        except ValueError as exc:
+            failures.append(str(exc))
+            continue
+        if not calls_require_allow_destructive(function, operation):
+            failures.append("%s must call require_allow_destructive(operation, %r)" % (function_name, operation))
+
+
+def calls_require_allow_destructive(function, operation):
+    for node in ast.walk(function):
+        if not isinstance(node, ast.Call):
+            continue
+        if not isinstance(node.func, ast.Name) or node.func.id != "require_allow_destructive":
+            continue
+        if len(node.args) < 2:
+            continue
+        if not isinstance(node.args[0], ast.Name) or node.args[0].id != "operation":
+            continue
+        if constant_value(node.args[1]) == operation:
+            return True
+    return False
 
 
 def literal_string_list(node, label):

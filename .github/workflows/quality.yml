@@ -1,0 +1,33 @@
+name: Quality
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: python -m pip install uv
+
+      - name: Install dependencies
+        run: uv sync --dev --frozen
+
+      - name: Ruff
+        run: uv run ruff check .
+
+      - name: Operation registry
+        run: uv run python tools/check_operation_registry.py
+
+      - name: Compile Python
+        run: uv run python -m py_compile tordo/*.py remote-script/TordoBridge/bridge.py tools/check_operation_registry.py
