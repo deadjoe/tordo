@@ -30,9 +30,10 @@ For any non-trivial task:
 5. Build an explicit JSON plan.
 6. Dry-run with `tordo apply-plan PLAN --prepared-out PREPARED`.
 7. Inspect the prepared plan and dry-run response.
-8. Apply only after the dry-run is acceptable: `tordo apply-plan PLAN --apply --prepared-out PREPARED`.
-9. Verify through `tordo snapshot`, `tordo set-notes`, `tordo clip-notes`, `tordo export`, `tordo analyze`, or `tordo diff`.
-10. Ask for human listening feedback before taste-based follow-up edits.
+8. Check whether preflight appended default empty-project track cleanup. Use `--no-cleanup-empty-project-tracks` if the default empty tracks must be preserved.
+9. Apply only after the dry-run is acceptable: `tordo apply-plan PLAN --apply --prepared-out PREPARED`.
+10. Verify through `tordo snapshot`, `tordo set-notes`, `tordo clip-notes`, `tordo export`, `tordo analyze`, or `tordo diff`.
+11. Ask for human listening feedback before taste-based follow-up edits.
 
 ## Safety Rules
 

@@ -39,6 +39,7 @@ class SkillPackageTest(unittest.TestCase):
         self.assertIn("In scope: macOS, Ableton Live Suite `>=12.4`, Session View MIDI", content)
         self.assertIn("Out of scope: Windows, audio clip import, automation editing", content)
         self.assertIn("If a track or scene name is duplicated, stop and ask the human", content)
+        self.assertIn("--no-cleanup-empty-project-tracks", content)
         self.assertIn("not affiliated with, authorized, sponsored, or endorsed by Ableton AG", content)
 
     def test_openai_metadata_mentions_skill_token(self):

@@ -41,6 +41,10 @@ If a dry-run or apply fails with an expected-name mismatch, the Live Set changed
 
 Tordo refuses implicit clip overwrite. Choose an empty slot, ask the user whether to delete/rename the existing clip, or use supported note-edit operations on the existing clip.
 
+## Empty Default Tracks Disappeared In Dry-Run
+
+On a default empty Live Set, `apply-plan` may append cleanup operations for default empty tracks after a creation plan appends new tracks. This is normal and prevents generated projects from keeping unused defaults. If the user wants to keep those tracks, rerun dry-run and apply with `--no-cleanup-empty-project-tracks`.
+
 ## Browser Item Not Found
 
 Browser content differs by user and installed packs. Search with `tordo browser-items` and select a returned loadable item. If no match exists, fall back to native devices or uninstrumented MIDI.
