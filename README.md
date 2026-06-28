@@ -1,7 +1,7 @@
 # tordo
 
 <p align="center">
-  <img src="assets/tordo_logo.png" alt="tordo logo" width="200" height="200">
+  <img src="https://raw.githubusercontent.com/deadjoe/tordo/main/assets/tordo_logo.png" alt="tordo logo" width="200" height="200">
 </p>
 
 Tordo is an agent-facing Ableton Live control toolkit.
@@ -23,6 +23,11 @@ Tordo is in developer alpha. The core local control loop is working:
 - Adjust track mixer values, sends, and device parameters.
 - Modify MIDI notes by `note_id`.
 - Export snapshots and note archives for offline analysis and diffing.
+
+The Python package version and Live bridge version are intentionally separate:
+
+- The package version is the CLI/Skill distribution version shown by PyPI and TestPyPI.
+- The bridge version is the Live-side Remote Script compatibility version checked by `tordo doctor`.
 
 The current bridge source version is `TordoBridge 0.8.1`.
 
