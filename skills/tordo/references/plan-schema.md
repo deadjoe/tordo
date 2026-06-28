@@ -118,6 +118,8 @@ Search first:
 
 ```bash
 tordo browser-items --root instruments --query "piano"
+tordo browser-items --root packs --query "orchestral" --include-folders --max-depth 5
+tordo browser-items --root user_library --query "strings"
 ```
 
 Use a returned loadable item:
@@ -136,7 +138,7 @@ Use a returned loadable item:
 }
 ```
 
-Do not invent Browser URIs or assume pack names are portable.
+Do not invent Browser URIs or assume pack names are portable. `packs`, `user_library`, and `current_project` are user-specific discovery roots; inspect them before choosing sounds when the task depends on the user's installed resources.
 
 ## Destructive Operations
 

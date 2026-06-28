@@ -42,7 +42,20 @@ class SkillPackageTest(unittest.TestCase):
         self.assertIn("--no-cleanup-empty-project-tracks", content)
         self.assertIn("Live requires at least one regular track", content)
         self.assertIn("create a holder track first", content)
+        self.assertIn("installed `packs` and `user_library`", content)
         self.assertIn("not affiliated with, authorized, sponsored, or endorsed by Ableton AG", content)
+
+    def test_browser_workflow_surfaces_user_installed_resources(self):
+        workflows = (SKILL_DIR / "references" / "workflows.md").read_text()
+        schema = (SKILL_DIR / "references" / "plan-schema.md").read_text()
+        contract = (SKILL_DIR / "references" / "contract.md").read_text()
+
+        for content in (workflows, schema, contract):
+            self.assertIn("packs", content)
+            self.assertIn("user_library", content)
+        self.assertIn("--root packs", workflows)
+        self.assertIn("--include-folders", workflows)
+        self.assertIn("Folder or pack nodes are useful for discovery but are not load targets", workflows)
 
     def test_openai_metadata_mentions_skill_token(self):
         content = (SKILL_DIR / "agents" / "openai.yaml").read_text()

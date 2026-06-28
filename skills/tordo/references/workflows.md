@@ -62,19 +62,23 @@ When the user asks to clear or replace the current Set:
 
 ## Use Browser Sounds
 
-Browser content is user-specific. Never assume a rack, preset, pack, or plug-in exists.
+Browser content is user-specific. Never assume a rack, preset, pack, or plug-in exists. Installed Packs are first-class user resources; inspect them when choosing instruments, orchestral libraries, drum kits, effects, or any sound that may come from purchased/free packs.
 
-1. Query current Browser items:
+1. Query current Browser items across the roots relevant to the task:
 
 ```bash
 tordo browser-items --root sounds --query "lead"
 tordo browser-items --root instruments --query "piano"
+tordo browser-items --root packs --query "orchestral" --include-folders --max-depth 5
+tordo browser-items --root user_library --query "strings"
+tordo browser-items --root current_project --query "rack"
 tordo browser-items --root audio_effects --query "filter"
 ```
 
-2. Choose from returned loadable items only.
-3. Prefer `browser_uri` from the current query result when available.
-4. If no good item exists, fall back to native device insertion or uninstrumented MIDI and tell the user.
+2. For broad sound-selection tasks, make a short inventory of promising installed resources before choosing. Packs often contain third-party or purchased libraries that are better than stock categories.
+3. Choose from returned loadable items only. Folder or pack nodes are useful for discovery but are not load targets.
+4. Prefer `browser_uri` from the current query result when available.
+5. If no good item exists, fall back to native device insertion or uninstrumented MIDI and tell the user.
 
 ## Handle Duplicate Names
 
