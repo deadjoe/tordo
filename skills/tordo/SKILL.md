@@ -1,6 +1,6 @@
 ---
 name: tordo
-description: Use Tordo to inspect, plan, dry-run, apply, and verify safe Session View MIDI edits in Ableton Live through the installed tordo CLI and JSON plan schema. Use when a user asks an agent to control Ableton Live, inspect a Live Set, create or edit MIDI clips, adjust track mixer/device parameters, search Ableton Browser items, or troubleshoot the local Tordo bridge.
+description: Use Tordo to inspect, plan, dry-run, apply, and verify safe Session View MIDI edits in Ableton Live through the installed tordo CLI and JSON plan schema. Use when a user asks an agent to control Ableton Live, inspect a Live Set, create or edit MIDI clips, adjust track mixer/device parameters, discover installed Packs/User Library Browser sounds, or troubleshoot the local Tordo bridge.
 ---
 
 # Tordo
@@ -26,7 +26,7 @@ For any non-trivial task:
 1. Run `tordo doctor` before assuming the environment works. For a concise summary, run `python scripts/doctor.py` from this skill folder.
 2. Run `tordo schema` and `tordo capabilities`; treat their output as newer than this Skill.
 3. Run `tordo snapshot` before planning against existing Live objects.
-4. If choosing sounds, run `tordo browser-items` first and only use returned loadable items.
+4. If choosing sounds, run `tordo browser-items` first across relevant roots, including installed `packs` and `user_library`, and only use returned loadable items.
 5. Build an explicit JSON plan.
 6. Dry-run with `tordo apply-plan PLAN --prepared-out PREPARED`.
 7. Inspect the prepared plan and dry-run response.
@@ -46,7 +46,7 @@ For any non-trivial task:
 - Never delete tracks or scenes without `allow_destructive: true`.
 - Never delete the final regular track in a Set. To clear a Set, create a holder track first, delete old tracks, create replacement tracks, then delete the holder only after another regular track exists.
 - Keep plans within `capabilities` limits; split large note writes.
-- Do not hard-code Browser rack names as portable assumptions.
+- Do not hard-code Browser rack names as portable assumptions. Treat installed Packs, User Library, and Current Project as user-specific resources to discover before choosing sounds.
 - Do not use `tordo dev ...` unless the user is maintaining Tordo or explicitly asks for project proof/debug commands.
 
 ## References

@@ -52,7 +52,7 @@ In scope for the first Skill:
 - creating MIDI tracks, scenes, MIDI clips, and MIDI notes
 - modifying, removing, quantizing, cropping, and duplicating MIDI clips/notes when supported by `capabilities`
 - track state, mixer volume/pan/sends, return tracks, and native device parameters
-- native Live device insertion and Browser item loading after Browser discovery
+- native Live device insertion and Browser item loading after Browser discovery, including installed Packs (`packs`), User Library (`user_library`), and Current Project (`current_project`) resources exposed by Live
 - group/foldable track presence with fresh snapshot index validation
 - human-ear-in-the-loop editing
 
