@@ -34,6 +34,8 @@ The intended stable contract is:
 
 The current product path is Skill plus CLI. Other integration surfaces are intentionally out of scope until the core contract is clean and validated.
 
+Release and TestPyPI preparation steps are tracked in [docs/release.md](docs/release.md).
+
 ## Requirements
 
 - macOS

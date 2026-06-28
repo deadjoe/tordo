@@ -37,3 +37,6 @@ jobs:
 
       - name: Build package
         run: uv build
+
+      - name: Check package artifacts
+        run: uv run python tools/check_package_artifacts.py
