@@ -12,7 +12,14 @@ Tordo first targets macOS with Ableton Live Suite `>=12.4`. If `doctor` reports 
 
 ## Remote Script Missing Or Version Mismatch
 
-If `TordoBridge` is missing or the bridge version differs from the package, ask the user to install/update the Remote Script and restart Live. Do not keep retrying writes against a mismatched bridge.
+If `TordoBridge` is missing or the bridge version differs from the package:
+
+1. Run `tordo install-remote-script`.
+2. Tell the user to restart Ableton Live.
+3. Tell the user to select `TordoBridge` in Live Settings -> Link, Tempo & MIDI -> Control Surface.
+4. Run `tordo doctor` again.
+
+Do not keep retrying writes against a missing or mismatched bridge. The CLI can copy the Remote Script, but it cannot restart Live or select the Control Surface for the user.
 
 ## Bridge Not Reachable
 

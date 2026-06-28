@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tordo.doctor import bridge_version_from_source, version_at_least, version_tuple
+from tordo.doctor import bridge_version_from_source, expected_bridge_version, version_at_least, version_tuple
 
 
 class DoctorTests(unittest.TestCase):
@@ -14,11 +14,14 @@ class DoctorTests(unittest.TestCase):
         self.assertTrue(version_at_least("12.4.1", "12.4"))
         self.assertFalse(version_at_least("12.3.9", "12.4"))
 
-    def test_bridge_version_from_source_reads_ast_constant(self):
+    def test_bridge_version_from_source_reads_constant(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "bridge.py"
             path.write_text('BRIDGE_VERSION = "9.8.7"\n')
             self.assertEqual(bridge_version_from_source(path), "9.8.7")
+
+    def test_expected_bridge_version_comes_from_packaged_source(self):
+        self.assertEqual(expected_bridge_version(), "0.8.1")
 
 
 if __name__ == "__main__":

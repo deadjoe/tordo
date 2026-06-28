@@ -13,6 +13,7 @@ tordo CLI + explicit JSON plan schema
 Use top-level stable CLI commands:
 
 - `tordo doctor`
+- `tordo install-remote-script`
 - `tordo schema`
 - `tordo capabilities`
 - `tordo ping`

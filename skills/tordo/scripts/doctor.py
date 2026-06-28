@@ -22,7 +22,7 @@ def main():
                 "ok": False,
                 "error": {
                     "code": "tordo_not_found",
-                    "message": "tordo executable was not found on PATH",
+                    "message": "tordo executable was not found on PATH; install the tordo CLI before controlling Live",
                 },
             }
         )
