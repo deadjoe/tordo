@@ -24,7 +24,7 @@ Tordo is in developer alpha. The core local control loop is working:
 - Modify MIDI notes by `note_id`.
 - Export snapshots and note archives for offline analysis and diffing.
 
-The current bridge source version is `TordoBridge 0.8.0`.
+The current bridge source version is `TordoBridge 0.8.1`.
 
 The intended stable contract is:
 

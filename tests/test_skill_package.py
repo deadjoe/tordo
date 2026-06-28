@@ -57,6 +57,16 @@ class SkillPackageTest(unittest.TestCase):
         self.assertIn("--include-folders", workflows)
         self.assertIn("Folder or pack nodes are useful for discovery but are not load targets", workflows)
 
+    def test_skill_documents_return_and_master_mixer_targets(self):
+        skill = (SKILL_DIR / "SKILL.md").read_text()
+        schema = (SKILL_DIR / "references" / "plan-schema.md").read_text()
+        contract = (SKILL_DIR / "references" / "contract.md").read_text()
+
+        for content in (skill, schema, contract):
+            self.assertIn("track_type=return", content)
+            self.assertIn("track_type=master", content)
+        self.assertIn("master track has no sends", schema)
+
     def test_openai_metadata_mentions_skill_token(self):
         content = (SKILL_DIR / "agents" / "openai.yaml").read_text()
         self.assertIn('display_name: "Tordo"', content)

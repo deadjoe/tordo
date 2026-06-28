@@ -51,7 +51,7 @@ In scope for the first Skill:
 - Session View MIDI clips
 - creating MIDI tracks, scenes, MIDI clips, and MIDI notes
 - modifying, removing, quantizing, cropping, and duplicating MIDI clips/notes when supported by `capabilities`
-- track state, mixer volume/pan/sends, return tracks, and native device parameters
+- track state, mixer volume/pan/sends, return-track mixer targets with `track_type=return`, master-track volume/pan targets with `track_type=master`, return tracks, and native device parameters
 - native Live device insertion and Browser item loading after Browser discovery, including installed Packs (`packs`), User Library (`user_library`), and Current Project (`current_project`) resources exposed by Live
 - group/foldable track presence with fresh snapshot index validation
 - human-ear-in-the-loop editing

@@ -7,7 +7,7 @@ def agent_plan_schema():
         "plan_version": 1,
         "selector_policy": {
             "track": (
-                "Use track_name or track_selector.name for unique existing regular/return tracks. "
+                "Use track_name or track_selector.name for unique existing regular/return tracks and the master track. "
                 "Use track_selector.index plus track_selector.expected_name only as position-context validation."
             ),
             "scene": (
@@ -27,7 +27,7 @@ def agent_plan_schema():
         },
         "operation_targets": {
             "set_track_state": ["track"],
-            "set_track_mixer": ["track"],
+            "set_track_mixer": ["track", "return_track", "master_track"],
             "set_device_parameter": ["track", "device", "parameter"],
             "insert_device": ["track"],
             "load_browser_item": ["track", "browser_item"],

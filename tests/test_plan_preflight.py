@@ -105,6 +105,50 @@ class PlanPreflightSelectorTests(unittest.TestCase):
         self.assertEqual(operation["expected_track_name"], "Lead")
         self.assertEqual(report["resolved_tracks"][0]["track_name"], "Lead")
 
+    def test_return_track_mixer_selector_normalizes_to_bridge_fields(self):
+        plan = {
+            "plan_version": 1,
+            "operations": [
+                {
+                    "type": "set_track_mixer",
+                    "track_type": "return",
+                    "track_selector": {"name": "A-Reverb"},
+                    "volume": 0.7,
+                }
+            ],
+        }
+
+        prepared, report = prepare_plan_for_apply(plan, SNAPSHOT)
+
+        operation = prepared["operations"][0]
+        self.assertEqual(operation["track_type"], "return")
+        self.assertEqual(operation["track_index"], 0)
+        self.assertEqual(operation["expected_track_name"], "A-Reverb")
+        self.assertEqual(report["resolved_tracks"][0]["track_type"], "return")
+        self.assertEqual(report["resolved_tracks"][0]["track_name"], "A-Reverb")
+
+    def test_master_track_mixer_selector_normalizes_expected_name(self):
+        plan = {
+            "plan_version": 1,
+            "operations": [
+                {
+                    "type": "set_track_mixer",
+                    "track_type": "master",
+                    "track_selector": {"name": "Main"},
+                    "volume": 0.82,
+                }
+            ],
+        }
+
+        prepared, report = prepare_plan_for_apply(plan, SNAPSHOT)
+
+        operation = prepared["operations"][0]
+        self.assertEqual(operation["track_type"], "master")
+        self.assertEqual(operation["track_index"], 0)
+        self.assertEqual(operation["expected_track_name"], "Main")
+        self.assertEqual(report["resolved_tracks"][0]["track_type"], "master")
+        self.assertNotIn("track_index", report["resolved_tracks"][0])
+
     def test_conflicting_top_level_and_selector_index_refuses(self):
         plan = {
             "plan_version": 1,
