@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tordo — Make music in Ableton Live by talking to your AI</title>
+<meta name="description" content="Tordo is a friendly bridge between Ableton Live and the AI agent you already use. Describe what you want and your agent builds it safely inside your Live Set." />
+<link rel="icon" href="assets/tordo_logo.png" />
+<style>
+  :root {
+    --bg: #fbfaf8;
+    --surface: #ffffff;
+    --ink: #1c1b19;
+    --ink-soft: #57534e;
+    --ink-faint: #8a847c;
+    --accent: #ea6a1e;
+    --accent-strong: #c9540f;
+    --line: #ece8e2;
+    --radius: 16px;
+    --shadow: 0 1px 2px rgba(28,27,25,.04), 0 12px 32px rgba(28,27,25,.06);
+    --maxw: 1060px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  .wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(251,250,248,.82);
+    backdrop-filter: saturate(140%) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; }
+  .brand img { width: 30px; height: 30px; }
+  .nav-links { display: flex; align-items: center; gap: 28px; }
+  .nav-links a { color: var(--ink-soft); font-size: 15px; font-weight: 500; transition: color .15s; }
+  .nav-links a:hover { color: var(--ink); }
+  .gh {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--line); background: var(--surface);
+    padding: 7px 14px; border-radius: 999px; font-weight: 600; font-size: 14px;
+    transition: border-color .15s, transform .15s;
+  }
+  .gh:hover { border-color: #d8d2c9; transform: translateY(-1px); }
+  .gh svg { width: 16px; height: 16px; }
+
+  /* Hero */
+  .hero { position: relative; text-align: center; padding: 76px 0 64px; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
+    width: 620px; height: 620px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(234,106,30,.13), rgba(234,106,30,0) 62%);
+    pointer-events: none; z-index: 0;
+  }
+  .hero > * { position: relative; z-index: 1; }
+  .hero-logo { width: 152px; height: 152px; margin-bottom: 18px; }
+  h1 {
+    font-size: clamp(34px, 5.4vw, 56px); line-height: 1.08; letter-spacing: -.025em;
+    margin: 0 auto 18px; max-width: 14ch; font-weight: 800;
+  }
+  h1 .hl { color: var(--accent); }
+  .lede { font-size: clamp(17px, 2.2vw, 20px); color: var(--ink-soft); max-width: 60ch; margin: 0 auto 30px; }
+  .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 24px; border-radius: 999px; font-weight: 650; font-size: 15.5px;
+    transition: transform .15s, box-shadow .15s, background .15s, border-color .15s; cursor: pointer; border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 6px 18px rgba(234,106,30,.28); }
+  .btn-primary:hover { background: var(--accent-strong); transform: translateY(-2px); }
+  .btn-ghost { background: var(--surface); border-color: var(--line); color: var(--ink); }
+  .btn-ghost:hover { border-color: #d8d2c9; transform: translateY(-2px); }
+  .req { margin-top: 26px; font-size: 14px; color: var(--ink-faint); }
+  .req b { color: var(--ink-soft); font-weight: 600; }
+
+  /* Sections */
+  section { padding: 64px 0; }
+  .section-head { text-align: center; margin-bottom: 44px; }
+  .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 12.5px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+  h2 { font-size: clamp(26px, 3.4vw, 34px); letter-spacing: -.02em; margin: 0 0 8px; font-weight: 750; }
+  .section-head p { color: var(--ink-soft); margin: 0 auto; max-width: 56ch; font-size: 16.5px; }
+
+  /* Features */
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 28px; box-shadow: var(--shadow); transition: transform .18s, box-shadow .18s;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 2px 4px rgba(28,27,25,.05), 0 18px 44px rgba(28,27,25,.09); }
+  .ico {
+    width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+    background: #fdf1e8; color: var(--accent); margin-bottom: 16px;
+  }
+  .ico svg { width: 22px; height: 22px; }
+  .card h3 { margin: 0 0 6px; font-size: 18.5px; letter-spacing: -.01em; }
+  .card p { margin: 0; color: var(--ink-soft); font-size: 15.5px; }
+
+  /* Quick start */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; box-shadow: var(--shadow); }
+  .step-n { width: 30px; height: 30px; border-radius: 999px; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+  .step h3 { margin: 0 0 6px; font-size: 17px; }
+  .step p { margin: 0; color: var(--ink-soft); font-size: 15px; }
+
+  .codebox {
+    margin-top: 16px; background: #1c1b19; border-radius: 12px; padding: 14px 16px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  }
+  .codebox code { color: #f3ede4; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; }
+  .copy { flex: none; background: #34322e; color: #f3ede4; border: none; border-radius: 7px; padding: 6px 10px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s; }
+  .copy:hover { background: #46433d; }
+
+  .tip { margin-top: 26px; text-align: center; color: var(--ink-soft); font-size: 15.5px; background: #fdf6ef; border: 1px solid #f6e3d2; border-radius: var(--radius); padding: 18px 22px; }
+  .tip b { color: var(--ink); }
+
+  /* Footer */
+  footer { border-top: 1px solid var(--line); padding: 48px 0 56px; background: #faf8f5; }
+  .foot-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
+  .foot-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+  .foot-brand img { width: 28px; height: 28px; }
+  .foot-tag { color: var(--ink-faint); font-size: 14px; margin-top: 8px; max-width: 34ch; }
+  .foot-links { display: flex; gap: 26px; flex-wrap: wrap; }
+  .foot-links a { color: var(--ink-soft); font-size: 14.5px; font-weight: 500; }
+  .foot-links a:hover { color: var(--accent); }
+  .legal { margin-top: 32px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: 13px; line-height: 1.7; }
+
+  @media (max-width: 760px) {
+    .nav-links a:not(.gh) { display: none; }
+    .grid, .steps { grid-template-columns: 1fr; }
+    .hero { padding: 56px 0 44px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top"><img src="assets/tordo_logo.png" alt="Tordo logo" /> tordo</a>
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#quickstart">Quick start</a>
+      <a class="gh" href="https://github.com/deadjoe/tordo" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        GitHub
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap">
+      <img class="hero-logo" src="assets/tordo_logo.png" alt="Tordo" />
+      <h1>Make music in Ableton Live by <span class="hl">talking to your AI</span></h1>
+      <p class="lede">Tordo is a friendly bridge between Ableton Live and the AI assistant you already use. Describe what you want — a beat, a melody, a mix tweak — and your agent builds it safely inside your Live Set.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#quickstart">Get started</a>
+        <a class="btn btn-ghost" href="https://github.com/deadjoe/tordo" target="_blank" rel="noopener">View on GitHub</a>
+      </div>
+      <p class="req"><b>macOS</b> &nbsp;·&nbsp; <b>Ableton Live 12.4+</b> &nbsp;·&nbsp; works with <b>Claude Code</b> or <b>Codex</b></p>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Why Tordo</div>
+        <h2>Your ideas, straight into Live</h2>
+        <p>No scripting, no clicking through menus. Tordo lets your AI assistant do the mechanical work while you stay the musician.</p>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <h3>Just describe it</h3>
+          <p>Ask in plain language. Your agent turns ideas into tracks, clips, and notes — no menus, no mouse gymnastics.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <h3>Safe by default</h3>
+          <p>Every change is previewed before it’s applied. Tordo never overwrites your clips and never deletes anything without asking.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
+          <h3>You keep the ears</h3>
+          <p>Tordo can’t hear audio, and it won’t pretend to. It asks for your feedback on how things sound, then makes the edits.</p>
+        </div>
+        <div class="card">
+          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></svg></div>
+          <h3>Bring your own agent</h3>
+          <p>Works with the AI coding assistants you already use, like Claude Code and Codex. Tordo is simply a skill they learn.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick start -->
+  <section id="quickstart">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="eyebrow">Quick start</div>
+        <h2>Up and running in three steps</h2>
+        <p>You don’t need to be a developer. Add the skill to your AI assistant and let it handle the setup.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-n">1</div>
+          <h3>Check you’re set up</h3>
+          <p>You’ll need macOS, Ableton Live 12.4 Suite (or newer), and an AI assistant such as Claude Code or Codex.</p>
+        </div>
+        <div class="step">
+          <div class="step-n">2</div>
+          <h3>Add the Tordo skill</h3>
+          <p>Paste this to your AI assistant. It learns how to use Tordo and sets up the small Live connector for you.</p>
+          <div class="codebox">
+            <code id="cmd1">Add the Tordo skill from github.com/deadjoe/tordo, then set it up and check everything works.</code>
+            <button class="copy" data-target="cmd1">Copy</button>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-n">3</div>
+          <h3>Just ask</h3>
+          <p>Open your Live Set and say what you want. Tordo previews each change before applying it.</p>
+          <div class="codebox">
+            <code id="cmd2">Add a simple 4-bar piano melody on a new track, then let me listen.</code>
+            <button class="copy" data-target="cmd2">Copy</button>
+          </div>
+        </div>
+      </div>
+      <p class="tip">First time? Just tell your assistant <b>“set up Tordo and confirm it works.”</b> The skill walks you both through installing the Live connector and selecting it in Ableton — one restart and you’re ready.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div>
+        <div class="foot-brand"><img src="assets/tordo_logo.png" alt="Tordo" /> tordo</div>
+        <p class="foot-tag">A friendly, agent-driven way to make music in Ableton Live.</p>
+      </div>
+      <nav class="foot-links">
+        <a href="https://github.com/deadjoe/tordo" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/deadjoe/tordo/tree/main/docs" target="_blank" rel="noopener">Documentation</a>
+        <a href="https://github.com/deadjoe/tordo/releases" target="_blank" rel="noopener">Releases</a>
+      </nav>
+    </div>
+    <p class="legal">
+      Tordo is in developer alpha and is open source on GitHub.<br />
+      Tordo is an independent project and is not affiliated with, authorized, sponsored, or endorsed by Ableton AG. Ableton and Live are trademarks of Ableton AG.
+    </p>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var el = document.getElementById(btn.dataset.target);
+      navigator.clipboard.writeText(el.textContent.trim()).then(function () {
+        var prev = btn.textContent;
+        btn.textContent = 'Copied';
+        setTimeout(function () { btn.textContent = prev; }, 1400);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
