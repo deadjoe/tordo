@@ -223,6 +223,7 @@ remote-script/TordoBridge/
                                Thin Live-side Remote Script bridge
 tools/install_remote_script.py Remote Script installer
 docs/                          Design notes and handoff material
+skills/tordo/                  Packaged agent Skill contract and resources
 test_midi/                     Local MIDI test material
 artifacts/tmp/                 Ignored runtime plans and prepared plans
 exports/                       Ignored Live Set archives

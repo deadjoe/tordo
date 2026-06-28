@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tordo"
+  short_description: "Control Ableton Live with the tordo CLI"
+  default_prompt: "Use $tordo to inspect the current Ableton Live Set and propose a safe dry-run plan."
