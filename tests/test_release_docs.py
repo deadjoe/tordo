@@ -11,6 +11,8 @@ class ReleaseDocsTests(unittest.TestCase):
         self.assertIn("uv publish --dry-run --trusted-publishing never", content)
         self.assertIn("--publish-url https://test.pypi.org/legacy/", content)
         self.assertIn("--extra-index-url https://pypi.org/simple/", content)
+        self.assertIn("project name is available on both PyPI and TestPyPI", content)
+        self.assertIn("README renders correctly", content)
         self.assertIn("clean-environment acceptance test", content)
 
 
