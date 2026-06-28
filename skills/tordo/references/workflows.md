@@ -48,6 +48,18 @@ tordo apply-plan PLAN.json --apply --prepared-out PREPARED-apply.json --timeout 
 
 8. Verify with snapshot, set-notes, clip-notes, export, analyze, or diff.
 
+## Clear Or Replace A Set
+
+Live requires at least one regular track to exist at every step. Do not write a plan that deletes all current regular tracks before creating a replacement.
+
+When the user asks to clear or replace the current Set:
+
+1. Inspect the Set and confirm destructive edits are allowed.
+2. Create a temporary holder regular track or create the first replacement regular track before deleting old tracks.
+3. Delete old tracks from highest index to lowest index with `allow_destructive: true` and `expected_track_name`.
+4. Use `--no-cleanup-empty-project-tracks` if default empty-project cleanup would conflict with deliberate holder-track cleanup.
+5. Delete the holder only after at least one non-holder regular track exists.
+
 ## Use Browser Sounds
 
 Browser content is user-specific. Never assume a rack, preset, pack, or plug-in exists.

@@ -153,6 +153,128 @@ class PlanPreflightSelectorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "conflicting clip_name"):
             prepare_plan_for_apply(plan, SNAPSHOT)
 
+    def test_refuses_deleting_last_regular_track(self):
+        snapshot = {"tracks": [{"index": 0, "name": "Only"}], "scenes": []}
+        plan = {
+            "plan_version": 1,
+            "operations": [
+                {
+                    "type": "delete_track",
+                    "track_selector": {"index": 0, "expected_name": "Only"},
+                    "allow_destructive": True,
+                }
+            ],
+        }
+
+        with self.assertRaisesRegex(ValueError, "last regular track"):
+            prepare_plan_for_apply(plan, snapshot)
+
+    def test_allows_deleting_last_original_track_after_creating_holder(self):
+        snapshot = {"tracks": [{"index": 0, "name": "Only"}], "scenes": []}
+        plan = {
+            "plan_version": 1,
+            "operations": [
+                {"id": "track.holder", "type": "create_midi_track", "index": -1, "name": "Tordo Holder"},
+                {
+                    "type": "delete_track",
+                    "track_selector": {"index": 0, "expected_name": "Only"},
+                    "allow_destructive": True,
+                },
+            ],
+        }
+
+        prepared, report = prepare_plan_for_apply(plan, snapshot)
+
+        self.assertEqual(prepared["operations"][1]["track_index"], 0)
+        self.assertEqual(prepared["operations"][1]["expected_track_name"], "Only")
+        self.assertEqual(report["validated_tracks"][0]["track_name"], "Only")
+
+    def test_refuses_delete_all_before_late_create(self):
+        snapshot = {"tracks": [{"index": 0, "name": "Only"}], "scenes": []}
+        plan = {
+            "plan_version": 1,
+            "operations": [
+                {
+                    "type": "delete_track",
+                    "track_selector": {"index": 0, "expected_name": "Only"},
+                    "allow_destructive": True,
+                },
+                {"id": "track.holder", "type": "create_midi_track", "index": -1, "name": "Tordo Holder"},
+            ],
+        }
+
+        with self.assertRaisesRegex(ValueError, "operation 0 would delete the last regular track"):
+            prepare_plan_for_apply(plan, snapshot)
+
+    def test_refuses_deleting_all_existing_regular_tracks(self):
+        snapshot = {
+            "tracks": [
+                {"index": 0, "name": "One"},
+                {"index": 1, "name": "Two"},
+                {"index": 2, "name": "Three"},
+            ],
+            "scenes": [],
+        }
+        plan = {
+            "plan_version": 1,
+            "operations": [
+                {
+                    "type": "delete_track",
+                    "track_selector": {"index": 2, "expected_name": "Three"},
+                    "allow_destructive": True,
+                },
+                {
+                    "type": "delete_track",
+                    "track_selector": {"index": 1, "expected_name": "Two"},
+                    "allow_destructive": True,
+                },
+                {
+                    "type": "delete_track",
+                    "track_selector": {"index": 0, "expected_name": "One"},
+                    "allow_destructive": True,
+                },
+            ],
+        }
+
+        with self.assertRaisesRegex(ValueError, "operation 2 would delete the last regular track"):
+            prepare_plan_for_apply(plan, snapshot)
+
+    def test_allows_deleting_all_existing_regular_tracks_after_holder(self):
+        snapshot = {
+            "tracks": [
+                {"index": 0, "name": "One"},
+                {"index": 1, "name": "Two"},
+                {"index": 2, "name": "Three"},
+            ],
+            "scenes": [],
+        }
+        plan = {
+            "plan_version": 1,
+            "operations": [
+                {"id": "track.holder", "type": "create_midi_track", "index": -1, "name": "Tordo Holder"},
+                {
+                    "type": "delete_track",
+                    "track_selector": {"index": 2, "expected_name": "Three"},
+                    "allow_destructive": True,
+                },
+                {
+                    "type": "delete_track",
+                    "track_selector": {"index": 1, "expected_name": "Two"},
+                    "allow_destructive": True,
+                },
+                {
+                    "type": "delete_track",
+                    "track_selector": {"index": 0, "expected_name": "One"},
+                    "allow_destructive": True,
+                },
+            ],
+        }
+
+        prepared, report = prepare_plan_for_apply(plan, snapshot)
+
+        self.assertEqual(prepared["operations"][3]["track_index"], 0)
+        self.assertEqual([item["track_name"] for item in report["validated_tracks"]], ["Three", "Two", "One"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -40,6 +40,8 @@ class SkillPackageTest(unittest.TestCase):
         self.assertIn("Out of scope: Windows, audio clip import, automation editing", content)
         self.assertIn("If a track or scene name is duplicated, stop and ask the human", content)
         self.assertIn("--no-cleanup-empty-project-tracks", content)
+        self.assertIn("Live requires at least one regular track", content)
+        self.assertIn("create a holder track first", content)
         self.assertIn("not affiliated with, authorized, sponsored, or endorsed by Ableton AG", content)
 
     def test_openai_metadata_mentions_skill_token(self):

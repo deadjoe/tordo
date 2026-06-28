@@ -193,6 +193,8 @@ uv run tordo apply-plan artifacts/tmp/axel-f-plan.json \
   --no-cleanup-empty-project-tracks
 ```
 
+Ableton Live requires at least one regular track in a Set. If you are clearing or replacing a non-empty Set, create or keep a holder track before deleting all existing regular tracks; external preflight refuses plans that would delete the final regular track.
+
 ## Export And Analyze
 
 Export the current Live Set into an archive:

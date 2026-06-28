@@ -1219,9 +1219,18 @@ def apply_delete_track(context, operation):
     tracks = safe_list(context.song, "tracks")
     if track_index >= len(tracks):
         raise BridgeRequestError("not_found", "No track at index %s" % track_index)
+    current_track_count = context.track_count if context.dry_run else len(tracks)
+    if current_track_count <= 1:
+        raise BridgeRequestError(
+            "bad_plan",
+            "Cannot delete the last regular track; Live requires at least one regular track. "
+            "Create or keep a holder track before deleting all existing regular tracks.",
+        )
     name = safe_get(tracks[track_index], "name")
     assert_expected_track_name(operation, tracks[track_index], track_index, "track")
-    if not context.dry_run:
+    if context.dry_run:
+        context.track_count -= 1
+    else:
         try:
             context.song.delete_track(track_index)
         except Exception as exc:
