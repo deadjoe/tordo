@@ -39,13 +39,14 @@ tordo apply-plan PLAN.json --prepared-out PREPARED.json --timeout 120
 ```
 
 5. Inspect the prepared plan. Confirm expected names were added for existing targets.
-6. Apply:
+6. If the current Set is a default empty project, inspect whether preflight appended deletion of the default empty tracks (`1-MIDI`, `2-MIDI`, `3-Audio`, `4-Audio`). This cleanup keeps generated projects tidy, but use `--no-cleanup-empty-project-tracks` when the task needs to preserve those tracks.
+7. Apply:
 
 ```bash
 tordo apply-plan PLAN.json --apply --prepared-out PREPARED-apply.json --timeout 120
 ```
 
-7. Verify with snapshot, set-notes, clip-notes, export, analyze, or diff.
+8. Verify with snapshot, set-notes, clip-notes, export, analyze, or diff.
 
 ## Use Browser Sounds
 
