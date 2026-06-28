@@ -157,3 +157,4 @@ Deleting tracks or scenes must be explicit:
 ```
 
 Ask the human before destructive edits unless the current request is already an explicit delete request.
+Live also requires at least one regular track at every step; create or keep a holder regular track before deleting all existing regular tracks.

@@ -45,6 +45,10 @@ Tordo refuses implicit clip overwrite. Choose an empty slot, ask the user whethe
 
 On a default empty Live Set, `apply-plan` may append cleanup operations for default empty tracks after a creation plan appends new tracks. This is normal and prevents generated projects from keeping unused defaults. If the user wants to keep those tracks, rerun dry-run and apply with `--no-cleanup-empty-project-tracks`.
 
+## Cannot Delete The Last Regular Track
+
+Live requires at least one regular track in every Set. If preflight refuses with `last regular track`, or apply reports that it could not delete a final track, rebuild the plan so it creates or keeps a holder regular track before deleting old tracks. Delete the holder only after another regular track exists.
+
 ## Browser Item Not Found
 
 Browser content differs by user and installed packs. Search with `tordo browser-items` and select a returned loadable item. If no match exists, fall back to native devices or uninstrumented MIDI.

@@ -31,9 +31,10 @@ For any non-trivial task:
 6. Dry-run with `tordo apply-plan PLAN --prepared-out PREPARED`.
 7. Inspect the prepared plan and dry-run response.
 8. Check whether preflight appended default empty-project track cleanup. Use `--no-cleanup-empty-project-tracks` if the default empty tracks must be preserved.
-9. Apply only after the dry-run is acceptable: `tordo apply-plan PLAN --apply --prepared-out PREPARED`.
-10. Verify through `tordo snapshot`, `tordo set-notes`, `tordo clip-notes`, `tordo export`, `tordo analyze`, or `tordo diff`.
-11. Ask for human listening feedback before taste-based follow-up edits.
+9. When clearing or replacing a Set, keep or create a holder regular track before deleting all existing regular tracks; Live requires at least one regular track at every step.
+10. Apply only after the dry-run is acceptable: `tordo apply-plan PLAN --apply --prepared-out PREPARED`.
+11. Verify through `tordo snapshot`, `tordo set-notes`, `tordo clip-notes`, `tordo export`, `tordo analyze`, or `tordo diff`.
+12. Ask for human listening feedback before taste-based follow-up edits.
 
 ## Safety Rules
 
@@ -43,6 +44,7 @@ For any non-trivial task:
 - Use `track_ref`, `scene_ref`, and `clip_ref` for objects created earlier in the same plan.
 - Never create a MIDI clip over an existing clip.
 - Never delete tracks or scenes without `allow_destructive: true`.
+- Never delete the final regular track in a Set. To clear a Set, create a holder track first, delete old tracks, create replacement tracks, then delete the holder only after another regular track exists.
 - Keep plans within `capabilities` limits; split large note writes.
 - Do not hard-code Browser rack names as portable assumptions.
 - Do not use `tordo dev ...` unless the user is maintaining Tordo or explicitly asks for project proof/debug commands.

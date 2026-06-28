@@ -55,6 +55,12 @@ CLIP_TARGET_OPERATIONS = {
     "remove_notes",
 }
 
+REGULAR_TRACK_CREATE_OPERATIONS = {
+    "create_midi_track",
+    "create_audio_track",
+    "duplicate_track",
+}
+
 
 def prepare_plan_for_apply(plan, snapshot):
     prepared = deepcopy(plan)
@@ -66,7 +72,29 @@ def prepare_plan_for_apply(plan, snapshot):
         prepare_existing_track_target(operation, snapshot, index, report)
         prepare_scene_target(operation, snapshot, index, report)
         prepare_clip_target(operation, snapshot, index, report)
+    validate_regular_track_survival(prepared, snapshot)
     return prepared, report
+
+
+def validate_regular_track_survival(plan, snapshot):
+    regular_track_count = len(snapshot.get("tracks") or [])
+    operations = plan.get("operations") or []
+    for index, operation in enumerate(operations):
+        if not isinstance(operation, dict):
+            continue
+        operation_type = operation.get("type")
+        if operation_type in REGULAR_TRACK_CREATE_OPERATIONS:
+            regular_track_count += 1
+            continue
+        if operation_type != "delete_track":
+            continue
+        if regular_track_count <= 1:
+            raise ValueError(
+                "operation %s would delete the last regular track; "
+                "Live requires at least one regular track. "
+                "Create or keep a holder track before deleting all existing regular tracks." % index
+            )
+        regular_track_count -= 1
 
 
 def prepare_existing_track_target(operation, snapshot, operation_index, report):

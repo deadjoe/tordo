@@ -23,7 +23,7 @@ from tordo.midi_import import (
     midi_file_structure_plan,
 )
 from tordo.paths import ensure_parent, tmp_path
-from tordo.plan_preflight import prepare_plan_for_apply
+from tordo.plan_preflight import prepare_plan_for_apply, validate_regular_track_survival
 from tordo.plans import (
     demo_melody_plan,
     device_insertion_proof_plan,
@@ -861,6 +861,7 @@ def delete_tracks_by_name(names, out, apply, allow_non_empty, host, port, timeou
         "resolved_tracks": targets,
         "operations": operations,
     }
+    validate_regular_track_survival(plan, snapshot)
     write_plan(out, plan)
     apply_response = send_request(
         "apply_plan",
