@@ -19,7 +19,7 @@ except ImportError:
 
 HOST = "127.0.0.1"
 PORT = 8765
-BRIDGE_VERSION = "0.8.0"
+BRIDGE_VERSION = "0.8.1"
 PROTOCOL_VERSION = 1
 MAX_REQUEST_BYTES = 1024 * 1024
 MAX_NOTES_PER_CLIP = 20000
@@ -1426,8 +1426,10 @@ def track_state_update(track, field, value):
 
 
 def apply_set_track_mixer(context, operation):
-    track_ref = context.resolve_track(operation)
-    track = track_ref.get("track")
+    target = resolve_plan_track_target(context, operation)
+    track = target.get("track")
+    track_type = target.get("track_type", "track")
+    track_index = target.get("track_index", 0)
     mixer = safe_get(track, "mixer_device")
     updates = []
 
@@ -1439,6 +1441,8 @@ def apply_set_track_mixer(context, operation):
         updates.append(
             mixer_update("panning", safe_get(mixer, "panning"), operation.get("panning"), context.dry_run)
         )
+    if track_type == "master" and operation.get("sends") is not None:
+        raise BridgeRequestError("bad_plan", "set_track_mixer sends are not supported on master track")
     updates.extend(send_updates(mixer, operation.get("sends"), context.dry_run))
 
     if not updates:
@@ -1454,7 +1458,7 @@ def apply_set_track_mixer(context, operation):
             except Exception as exc:
                 raise BridgeRequestError(
                     "write_failed",
-                    "Failed to set track %s %s: %s" % (track_ref["track_index"], update["parameter"], exc),
+                    "Failed to set %s track %s %s: %s" % (track_type, track_index, update["parameter"], exc),
                 )
     else:
         for update in updates:
@@ -1462,7 +1466,8 @@ def apply_set_track_mixer(context, operation):
 
     return {
         "type": "set_track_mixer",
-        "track_index": track_ref["track_index"],
+        "track_type": track_type,
+        "track_index": track_index,
         "updates": updates,
     }
 

@@ -47,6 +47,7 @@ def main():
         set(schema["destructive_operations"]),
         bridge_tree,
     )
+    check_set_track_mixer_targets(failures, schema_targets, bridge_tree)
     check_bridge_version_sync(failures, bridge_tree, doctor_tree)
 
     if failures:
@@ -118,6 +119,40 @@ def calls_require_allow_destructive(function, operation):
         if not isinstance(node.args[0], ast.Name) or node.args[0].id != "operation":
             continue
         if constant_value(node.args[1]) == operation:
+            return True
+    return False
+
+
+def check_set_track_mixer_targets(failures, schema_targets, tree):
+    targets = set(schema_targets.get("set_track_mixer") or [])
+    if not {"return_track", "master_track"} & targets:
+        return
+    try:
+        function = find_function(tree, "apply_set_track_mixer")
+    except ValueError as exc:
+        failures.append(str(exc))
+        return
+    if not calls_named_function(function, "resolve_plan_track_target"):
+        failures.append(
+            "apply_set_track_mixer must call resolve_plan_track_target when schema exposes return/master targets"
+        )
+    if "master_track" in targets and not contains_constant(
+        function,
+        "set_track_mixer sends are not supported on master track",
+    ):
+        failures.append("apply_set_track_mixer must explicitly reject sends on master track")
+
+
+def calls_named_function(function, name):
+    for node in ast.walk(function):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == name:
+            return True
+    return False
+
+
+def contains_constant(function, value):
+    for node in ast.walk(function):
+        if constant_value(node) == value:
             return True
     return False
 

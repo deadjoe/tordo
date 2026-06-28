@@ -92,6 +92,31 @@ Rules:
 
 The CLI preflight resolves the current index from a fresh snapshot and adds expected-name guards before the bridge sees the plan.
 
+Mixer targets can be regular tracks, return tracks, or the master track when `tordo schema` reports support:
+
+```json
+{
+  "plan_version": 1,
+  "name": "shape-shared-space",
+  "operations": [
+    {
+      "type": "set_track_mixer",
+      "track_type": "return",
+      "track_selector": {"name": "A-Reverb"},
+      "volume": 0.65
+    },
+    {
+      "type": "set_track_mixer",
+      "track_type": "master",
+      "track_selector": {"name": "Main"},
+      "volume": 0.82
+    }
+  ]
+}
+```
+
+Use `track_type=return` for return-track sends, volume, and panning. Use `track_type=master` for master volume and panning only; the master track has no sends.
+
 ## Use Scene Context For A Clip
 
 ```json
@@ -118,8 +143,10 @@ Search first:
 
 ```bash
 tordo browser-items --root instruments --query "piano"
+tordo browser-items --root packs --include-folders --max-depth 2 --max-results 80
 tordo browser-items --root packs --query "orchestral" --include-folders --max-depth 5
-tordo browser-items --root user_library --query "strings"
+tordo browser-items --root user_library --include-folders --max-depth 4 --max-results 80
+tordo browser-items --root current_project --include-folders --max-depth 4 --max-results 80
 ```
 
 Use a returned loadable item:

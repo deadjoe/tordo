@@ -12,7 +12,7 @@ from pathlib import Path
 from tordo.bridge_client import DEFAULT_HOST, DEFAULT_PORT, BridgeConnectionError, send_request
 
 MINIMUM_LIVE_VERSION = "12.4"
-EXPECTED_BRIDGE_VERSION = "0.8.0"
+EXPECTED_BRIDGE_VERSION = "0.8.1"
 DEFAULT_REMOTE_SCRIPT = Path.home() / "Music" / "Ableton" / "User Library" / "Remote Scripts" / "TordoBridge"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SOURCE_BRIDGE = REPO_ROOT / "remote-script" / "TordoBridge" / "bridge.py"

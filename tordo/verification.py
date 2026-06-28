@@ -133,12 +133,19 @@ def verify_track_mixer(plan_path, track_index=None, track_name=None, host="127.0
     response = send_request("snapshot", host=host, port=port, timeout=timeout)
     payload = require_ok(response, "snapshot")
     inferred = infer_track_target_from_plan(plan)
+    track_type = inferred.get("track_type", "track")
     if track_name is None:
         track_name = inferred.get("track_name")
     if track_index is None:
         track_index = inferred.get("track_index")
-    track = resolve_snapshot_track(payload, name=track_name, index=track_index, label="verification")
-    track_index = track.get("index")
+    track = resolve_snapshot_track(
+        payload,
+        track_type=track_type,
+        name=track_name,
+        index=track_index,
+        label="verification",
+    )
+    track_index = track.get("index", 0)
     mismatches = []
     expected_state = expected_track_state(plan)
     expected_mixer = expected_track_mixer(plan)
@@ -171,6 +178,7 @@ def verify_track_mixer(plan_path, track_index=None, track_name=None, host="127.0
     return {
         "ok": not mismatches,
         "plan": plan.get("name"),
+        "track_type": track_type,
         "track_index": track_index,
         "track": {
             "name": track.get("name"),
@@ -351,6 +359,7 @@ def infer_track_target_from_plan(plan):
         if operation.get("type") not in ("set_track_state", "set_track_mixer"):
             continue
         target = {
+            "track_type": operation.get("track_type", "track"),
             "track_index": operation.get("track_index"),
             "track_name": operation.get("track_name"),
         }

@@ -11,7 +11,7 @@ Tordo lets an agent control Ableton Live through the installed `tordo` CLI. Use 
 
 Stay inside this first-version envelope unless the installed `tordo schema` and `tordo capabilities` explicitly support more:
 
-- In scope: macOS, Ableton Live Suite `>=12.4`, Session View MIDI clips, tracks, scenes, return tracks, native devices, Browser item loading after discovery, mixer/device parameters, structured selectors, dry-run/apply/verify workflows, and group/foldable track presence with fresh snapshot index validation.
+- In scope: macOS, Ableton Live Suite `>=12.4`, Session View MIDI clips, tracks, scenes, return tracks, native devices, Browser item loading after discovery, mixer/device parameters, `track_type=return` / `track_type=master` mixer targets when supported by runtime schema, structured selectors, dry-run/apply/verify workflows, and group/foldable track presence with fresh snapshot index validation.
 - Out of scope: Windows, audio clip import, automation editing, durable identity for duplicate track or scene names, direct third-party plug-in internals beyond Live-exposed parameters, and autonomous judgments about how audio sounds.
 - If a track or scene name is duplicated, stop and ask the human to identify the target. Do not guess.
 - Same-track duplicate clip names are usable only when scene context disambiguates the clip.
@@ -42,6 +42,7 @@ For any non-trivial task:
 - Prefer `track_selector.name`, `scene_selector.name`, and `clip_selector.name` only when names are unique.
 - Use `selector.index + selector.expected_name` only as position-context validation, not durable identity.
 - Use `track_ref`, `scene_ref`, and `clip_ref` for objects created earlier in the same plan.
+- Use `track_type=return` for return-track mixer/device targets and `track_type=master` for master-track mixer targets only after `tordo schema` confirms support.
 - Never create a MIDI clip over an existing clip.
 - Never delete tracks or scenes without `allow_destructive: true`.
 - Never delete the final regular track in a Set. To clear a Set, create a holder track first, delete old tracks, create replacement tracks, then delete the holder only after another regular track exists.
