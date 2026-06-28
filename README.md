@@ -29,7 +29,7 @@ The current bridge source version is `TordoBridge 0.8.0`.
 The intended stable contract is:
 
 - `tordo` CLI commands plus explicit JSON plan documents.
-- Runtime self-description through `tordo schema` and bridge `capabilities`.
+- Runtime self-description through `tordo schema` and `tordo capabilities`.
 - A packaged agent Skill, centered on `SKILL.md`, that teaches agents to use the same CLI/schema contract.
 
 The current product path is Skill plus CLI. Other integration surfaces are intentionally out of scope until the core contract is clean and validated.

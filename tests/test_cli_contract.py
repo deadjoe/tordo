@@ -1,8 +1,10 @@
 import contextlib
 import io
+import re
 import unittest
+from pathlib import Path
 
-from tordo.cli import main
+from tordo.cli import STABLE_COMMANDS, main
 
 
 class CliContractTests(unittest.TestCase):
@@ -24,6 +26,13 @@ class CliContractTests(unittest.TestCase):
         self.assertIn("usage: tordo dev plan midi-file", output)
         self.assertIn("--split-notes-dir", output)
 
+    def test_agent_contract_lists_stable_agent_commands(self):
+        contract = Path("docs/agent-contract.md").read_text()
+        commands = set(agent_usable_commands(contract))
+        expected = set(STABLE_COMMANDS) - {"dev"}
+
+        self.assertEqual(commands, expected)
+
 
 def help_output(argv):
     stdout = io.StringIO()
@@ -31,6 +40,17 @@ def help_output(argv):
         with self_exit_code(0):
             main(argv)
     return stdout.getvalue()
+
+
+def agent_usable_commands(contract):
+    marker = "Current agent-usable commands:"
+    start = contract.index(marker) + len(marker)
+    end = contract.index("Repository examples", start)
+    section = contract[start:end]
+    commands = []
+    for match in re.finditer(r"`uv run tordo ([^`\s]+)", section):
+        commands.append(match.group(1))
+    return commands
 
 
 @contextlib.contextmanager
