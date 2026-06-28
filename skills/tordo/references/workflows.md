@@ -16,6 +16,14 @@ python scripts/doctor.py
 
 Proceed only when the required checks for the requested task pass. For read-only local planning without Live writes, a missing running Live process can be explained. For runtime control, bridge reachability must pass.
 
+If `doctor` reports that the Remote Script is missing or the installed version does not match, run:
+
+```bash
+tordo install-remote-script
+```
+
+Then ask the user to restart Ableton Live, select `TordoBridge` as a Control Surface, and rerun `tordo doctor`. Do not proceed with Live writes until `doctor` passes.
+
 ## Inspect A Set
 
 1. Run `tordo doctor`.

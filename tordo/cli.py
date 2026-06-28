@@ -40,6 +40,7 @@ from tordo.plans import (
 )
 from tordo.project_cleanup import append_empty_project_track_cleanup
 from tordo.proofs import run_midi_import_proof
+from tordo.remote_install import DEFAULT_USER_LIBRARY, install_remote_script
 from tordo.schema import agent_plan_schema
 from tordo.verification import (
     verify_device_parameters,
@@ -63,6 +64,7 @@ STABLE_COMMANDS = [
     "analyze",
     "diff",
     "schema",
+    "install-remote-script",
     "doctor",
     "ping",
     "capabilities",
@@ -191,6 +193,14 @@ def main(argv=None, prog="tordo"):
     diff_parser.add_argument("--md-out", default=tmp_path("archive-diff.md"))
 
     subparsers.add_parser("schema", help="Print the agent-facing plan selector schema.")
+
+    install_parser = subparsers.add_parser(
+        "install-remote-script",
+        help="Install or update TordoBridge in the Ableton User Library.",
+    )
+    install_parser.add_argument("--target-user-library", default=str(DEFAULT_USER_LIBRARY))
+    install_parser.add_argument("--dry-run", action="store_true")
+    install_parser.add_argument("--compact", action="store_true")
 
     doctor_parser = subparsers.add_parser("doctor", help="Diagnose local tordo, Ableton Live, and bridge setup.")
     doctor_parser.add_argument("--host", default="127.0.0.1")
@@ -483,6 +493,10 @@ def main(argv=None, prog="tordo"):
     if args.command == "schema":
         print(json.dumps(agent_plan_schema(), indent=2, sort_keys=True))
         return 0
+    if args.command == "install-remote-script":
+        report = install_remote_script(args.target_user_library, dry_run=args.dry_run)
+        print_json(report, compact=args.compact)
+        return 0 if report.get("ok") else 2
     if args.command == "doctor":
         report = doctor_report(
             host=args.host,

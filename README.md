@@ -39,20 +39,26 @@ The current product path is Skill plus CLI. Other integration surfaces are inten
 - macOS
 - Ableton Live 12.4 Suite or newer
 - Python 3.11+
-- `uv`
+- `uv`, `pipx`, or another Python CLI installer
 
 ## Install
 
-Install Python dependencies:
+From a repository checkout, install Python dependencies:
 
 ```bash
 uv sync
 ```
 
-Install the Ableton Remote Script into the user library:
+For a package-style local install from this checkout:
 
 ```bash
-uv run python tools/install_remote_script.py
+uv tool install .
+```
+
+After the `tordo` CLI is available on `PATH`, install the Ableton Remote Script into the user library:
+
+```bash
+tordo install-remote-script
 ```
 
 Restart Ableton Live, then select this control surface:
@@ -68,26 +74,26 @@ Input and Output can stay set to `None`.
 Run the full local environment diagnosis:
 
 ```bash
-uv run tordo doctor
+tordo doctor
 ```
 
 Check the bridge socket:
 
 ```bash
-uv run tordo ping
+tordo ping
 ```
 
 Read the current Live Set:
 
 ```bash
-uv run tordo snapshot
+tordo snapshot
 ```
 
 Search Live Browser items:
 
 ```bash
-uv run tordo browser-items --root sounds --query "Antenna Lead"
-uv run tordo browser-items --root audio_effects --query "Auto Filter"
+tordo browser-items --root sounds --query "Antenna Lead"
+tordo browser-items --root audio_effects --query "Auto Filter"
 ```
 
 ## Plans
@@ -97,14 +103,14 @@ Plans are JSON documents applied through `apply-plan`.
 Dry-run first:
 
 ```bash
-uv run tordo apply-plan artifacts/tmp/example-plan.json \
+tordo apply-plan artifacts/tmp/example-plan.json \
   --prepared-out artifacts/tmp/example-prepared-dry-run.json
 ```
 
 Apply after inspection:
 
 ```bash
-uv run tordo apply-plan artifacts/tmp/example-plan.json \
+tordo apply-plan artifacts/tmp/example-plan.json \
   --apply \
   --prepared-out artifacts/tmp/example-prepared-apply.json \
   --timeout 120

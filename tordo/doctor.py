@@ -1,4 +1,3 @@
-import ast
 import glob
 import json
 import platform
@@ -10,12 +9,11 @@ from importlib import metadata
 from pathlib import Path
 
 from tordo.bridge_client import DEFAULT_HOST, DEFAULT_PORT, BridgeConnectionError, send_request
+from tordo.remote_install import DEFAULT_USER_LIBRARY, source_bridge_version
 
 MINIMUM_LIVE_VERSION = "12.4"
 EXPECTED_BRIDGE_VERSION = "0.8.1"
-DEFAULT_REMOTE_SCRIPT = Path.home() / "Music" / "Ableton" / "User Library" / "Remote Scripts" / "TordoBridge"
-REPO_ROOT = Path(__file__).resolve().parents[1]
-SOURCE_BRIDGE = REPO_ROOT / "remote-script" / "TordoBridge" / "bridge.py"
+DEFAULT_REMOTE_SCRIPT = DEFAULT_USER_LIBRARY / "Remote Scripts" / "TordoBridge"
 
 
 def doctor_report(
@@ -143,7 +141,7 @@ def add_remote_script_check(checks, remote_script):
     remote_script_path = Path(remote_script).expanduser() if remote_script else DEFAULT_REMOTE_SCRIPT
     bridge_path = remote_script_path / "bridge.py"
     installed_version = bridge_version_from_source(bridge_path)
-    expected_version = bridge_version_from_source(SOURCE_BRIDGE) or EXPECTED_BRIDGE_VERSION
+    expected_version = expected_bridge_version()
     add_check(
         checks,
         "remote_script_installed",
@@ -165,21 +163,13 @@ def bridge_version_from_source(path):
     path = Path(path)
     if not path.exists():
         return None
-    try:
-        tree = ast.parse(path.read_text())
-    except SyntaxError:
-        return None
-    for node in tree.body:
-        if isinstance(node, ast.Assign):
-            for target in node.targets:
-                if isinstance(target, ast.Name) and target.id == "BRIDGE_VERSION":
-                    return constant_value(node.value)
-    return None
+    return bridge_version_from_text(path.read_text())
 
 
-def constant_value(node):
-    if isinstance(node, ast.Constant):
-        return node.value
+def bridge_version_from_text(text):
+    for line in text.splitlines():
+        if line.startswith("BRIDGE_VERSION"):
+            return line.split("=", 1)[1].strip().strip("\"'")
     return None
 
 
@@ -222,7 +212,7 @@ def add_bridge_checks(checks, host, port, timeout):
         return ping
 
     payload = ping.get("payload") or {}
-    expected_version = bridge_version_from_source(SOURCE_BRIDGE) or EXPECTED_BRIDGE_VERSION
+    expected_version = expected_bridge_version()
     add_check(
         checks,
         "bridge_version",
@@ -241,6 +231,10 @@ def add_bridge_checks(checks, host, port, timeout):
         capabilities,
     )
     return {"ping": ping, "capabilities": capabilities}
+
+
+def expected_bridge_version():
+    return source_bridge_version() or EXPECTED_BRIDGE_VERSION
 
 
 def live_processes_payload():

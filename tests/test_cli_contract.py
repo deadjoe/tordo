@@ -12,6 +12,7 @@ class CliContractTests(unittest.TestCase):
         output = help_output(["--help"])
 
         self.assertIn("doctor", output)
+        self.assertIn("install-remote-script", output)
         self.assertIn("capabilities", output)
         self.assertIn("snapshot", output)
         self.assertIn("apply-plan", output)
@@ -48,7 +49,7 @@ def agent_usable_commands(contract):
     end = contract.index("Repository examples", start)
     section = contract[start:end]
     commands = []
-    for match in re.finditer(r"`uv run tordo ([^`\s]+)", section):
+    for match in re.finditer(r"`(?:uv run )?tordo ([^`\s]+)", section):
         commands.append(match.group(1))
     return commands
 

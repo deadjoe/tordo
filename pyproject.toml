@@ -7,9 +7,22 @@ requires-python = ">=3.11"
 dependencies = [
     "mido>=1.3.3",
 ]
+keywords = ["ableton", "ai-agent", "cli", "live", "midi"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Multimedia :: Sound/Audio :: MIDI",
+]
 
 [project.scripts]
 tordo = "tordo.cli:main"
+
+[project.urls]
+Repository = "https://github.com/deadjoe/tordo"
 
 [build-system]
 requires = ["hatchling"]
@@ -17,6 +30,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["tordo"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"remote-script/TordoBridge" = "tordo/remote_assets/TordoBridge"
 
 [dependency-groups]
 dev = [
