@@ -6,40 +6,26 @@
 
 Tordo is an agent-facing Ableton Live control toolkit.
 
-The project runs a MIDI Remote Script bridge inside Ableton Live and keeps agent workflow, planning, validation, and packaging in an external Python CLI. The product goal is to let an AI agent inspect, plan, and safely mutate a Live Set through a stable command-line and JSON-plan contract while avoiding stale index assumptions and accidental overwrites.
+It runs a small MIDI Remote Script bridge inside Ableton Live and keeps planning,
+validation, packaging, and agent workflow in an external Python CLI. The goal is
+to let an AI agent inspect, plan, dry-run, apply, and verify safe changes to a
+Live Set through an explicit command-line and JSON-plan contract.
 
-## Status
+Tordo is in developer alpha.
 
-Tordo is in developer alpha. The core local control loop is working:
+## What It Can Do
 
-- Read the current Live Set structure, tracks, scenes, clips, devices, mixer state, and MIDI notes.
+- Inspect tracks, scenes, clips, devices, mixer state, Browser items, and MIDI notes.
 - Generate explicit JSON plans outside Live.
 - Dry-run plans before writing.
-- Resolve human-facing names to current Live indices immediately before apply.
+- Resolve names against a fresh snapshot immediately before apply.
 - Guard write operations with expected track, scene, clip, device, and parameter names.
 - Create tracks, scenes, MIDI clips, and notes.
-- Load Ableton Browser items such as racks and presets.
+- Load discovered Ableton Browser items such as racks and presets.
 - Insert native Live devices.
-- Adjust track mixer values, sends, and device parameters.
+- Adjust track, return, and master mixer values where supported by the runtime schema.
 - Modify MIDI notes by `note_id`.
 - Export snapshots and note archives for offline analysis and diffing.
-
-The Python package version and Live bridge version are intentionally separate:
-
-- The package version is the CLI/Skill distribution version shown by PyPI and TestPyPI.
-- The bridge version is the Live-side Remote Script compatibility version checked by `tordo doctor`.
-
-The current bridge source version is `TordoBridge 0.8.1`.
-
-The intended stable contract is:
-
-- `tordo` CLI commands plus explicit JSON plan documents.
-- Runtime self-description through `tordo schema` and `tordo capabilities`.
-- A packaged agent Skill, centered on `SKILL.md`, that teaches agents to use the same CLI/schema contract.
-
-The current product path is Skill plus CLI. Other integration surfaces are intentionally out of scope until the core contract is clean and validated.
-
-Release and TestPyPI preparation steps are tracked in [docs/release.md](docs/release.md).
 
 ## Requirements
 
@@ -50,19 +36,20 @@ Release and TestPyPI preparation steps are tracked in [docs/release.md](docs/rel
 
 ## Install
 
-From a repository checkout, install Python dependencies:
+Published package install:
 
 ```bash
-uv sync
+uv tool install tordo
 ```
 
-For a package-style local install from this checkout:
+Current alpha source install:
 
 ```bash
-uv tool install .
+uv tool install git+https://github.com/deadjoe/tordo.git
 ```
 
-After the `tordo` CLI is available on `PATH`, install the Ableton Remote Script into the user library:
+After the `tordo` CLI is available on `PATH`, install the Ableton Remote Script
+into your Ableton User Library:
 
 ```bash
 tordo install-remote-script
@@ -76,7 +63,7 @@ Settings -> Link, Tempo & MIDI -> Control Surface -> TordoBridge
 
 Input and Output can stay set to `None`.
 
-## Basic Checks
+## Check The Setup
 
 Run the full local environment diagnosis:
 
@@ -96,31 +83,27 @@ Read the current Live Set:
 tordo snapshot
 ```
 
-Search Live Browser items:
+Ask what the installed runtime supports:
 
 ```bash
-tordo browser-items --root sounds --query "Antenna Lead"
-tordo browser-items --root audio_effects --query "Auto Filter"
+tordo schema
+tordo capabilities
 ```
 
-## Plans
+## Basic Plan Flow
 
 Plans are JSON documents applied through `apply-plan`.
 
 Dry-run first:
 
 ```bash
-tordo apply-plan artifacts/tmp/example-plan.json \
-  --prepared-out artifacts/tmp/example-prepared-dry-run.json
+tordo apply-plan plan.json --prepared-out prepared-dry-run.json
 ```
 
-Apply after inspection:
+Apply only after inspection:
 
 ```bash
-tordo apply-plan artifacts/tmp/example-plan.json \
-  --apply \
-  --prepared-out artifacts/tmp/example-prepared-apply.json \
-  --timeout 120
+tordo apply-plan plan.json --apply --prepared-out prepared-apply.json --timeout 120
 ```
 
 For existing Live objects, prefer exact names over hard-coded indices:
@@ -132,7 +115,7 @@ For existing Live objects, prefer exact names over hard-coded indices:
   "operations": [
     {
       "type": "set_device_parameter",
-      "track_name": "Main Hook - Axel F",
+      "track_name": "Main Hook",
       "device_index": 0,
       "device_name": "Antenna Lead",
       "parameter_index": 6,
@@ -143,133 +126,42 @@ For existing Live objects, prefer exact names over hard-coded indices:
 }
 ```
 
-The CLI resolves names to current indices from a fresh snapshot, then adds expected-name guards before the plan reaches Live.
+The CLI resolves names to current indices from a fresh snapshot, then adds
+expected-name guards before the plan reaches Live.
 
-## MIDI Import
+## Agent Skill
 
-Put local MIDI test files in `test_midi/`.
+The first agent-facing Skill lives in `skills/tordo/`. It teaches an AI agent to
+use the installed `tordo` CLI, inspect runtime capabilities, dry-run before
+apply, discover user-installed Browser resources before choosing sounds, and ask
+for human listening feedback when a decision depends on musical taste.
 
-Generate a role-based import plan:
+## Versioning
 
-```bash
-uv run tordo dev plan midi-file test_midi/axel_F.mid \
-  --prefix "Axel F" \
-  --scene-name "Axel F Full" \
-  --out artifacts/tmp/axel-f-plan.json
-```
+The Python package version and Live bridge version are intentionally separate:
 
-Apply it:
+- The package version is the CLI/Skill distribution version shown by PyPI and
+  TestPyPI.
+- The bridge version is the Live-side Remote Script compatibility version checked
+  by `tordo doctor`.
 
-```bash
-uv run tordo apply-plan artifacts/tmp/axel-f-plan.json \
-  --apply \
-  --prepared-out artifacts/tmp/axel-f-prepared-apply.json \
-  --timeout 180
-```
+The current bridge source version is `TordoBridge 0.8.1`.
 
-For larger MIDI files, split note writes into chunk plans so each bridge request stays small:
+## Safety Boundaries
 
-```bash
-uv run tordo dev plan midi-file test_midi/rasputin.mid \
-  --prefix "Rasputin" \
-  --scene-name "Rasputin Full" \
-  --tempo 122 \
-  --time-scale 1.0 \
-  --out artifacts/tmp/rasputin-structure-plan.json \
-  --split-notes-dir artifacts/tmp/rasputin-note-chunks \
-  --note-chunk-size 900
-```
-
-Run the same flow as an end-to-end proof:
-
-```bash
-uv run tordo dev proof midi-import test_midi/rasputin.mid \
-  --prefix "Rasputin" \
-  --scene-name "Rasputin Full" \
-  --tempo 122 \
-  --time-scale 1.0 \
-  --note-chunk-size 900 \
-  --work-dir artifacts/tmp/proofs/rasputin \
-  --export-out exports/rasputin-proof \
-  --replace-existing \
-  --overwrite \
-  --timeout 180 \
-  --limit-per-clip 20000
-```
-
-The proof command writes plans, prepared plans, bridge responses, a proof report, a Live export archive, and a per-clip note tuple diff.
-
-When a Live Set contains only default empty tracks and an import plan appends new tracks, `apply-plan` appends cleanup operations for default empty tracks such as `1-MIDI`, `2-MIDI`, `3-Audio`, and `4-Audio`. Disable this with:
-
-```bash
-uv run tordo apply-plan artifacts/tmp/axel-f-plan.json \
-  --no-cleanup-empty-project-tracks
-```
-
-Ableton Live requires at least one regular track in a Set. If you are clearing or replacing a non-empty Set, create or keep a holder track before deleting all existing regular tracks; external preflight refuses plans that would delete the final regular track.
-
-## Export And Analyze
-
-Export the current Live Set into an archive:
-
-```bash
-uv run tordo export --out exports/current --limit-per-clip 10000
-```
-
-Analyze notes:
-
-```bash
-uv run tordo analyze exports/current/set-notes.json \
-  --json-out artifacts/tmp/current-analysis.json \
-  --md-out artifacts/tmp/current-analysis.md
-```
-
-Diff two exports:
-
-```bash
-uv run tordo diff exports/before exports/after
-```
-
-## Project Layout
-
-```text
-tordo/                 External Python CLI and planning logic
-remote-script/TordoBridge/
-                               Thin Live-side Remote Script bridge
-tools/install_remote_script.py Remote Script installer
-docs/                          Design notes and handoff material
-skills/tordo/                  Packaged agent Skill contract and resources
-test_midi/                     Local MIDI test material
-artifacts/tmp/                 Ignored runtime plans and prepared plans
-exports/                       Ignored Live Set archives
-```
-
-## Design Boundaries
-
-- Live does not hot-reload Remote Scripts. Bridge changes require a Live restart.
-- Keep AI workflow, generation, analysis, preflight, packaging, and Skill logic outside Live.
-- Keep the Live-side bridge stable and conservative. It currently owns the safe plan executor and Live API write semantics, so new write operations should be batched and justified.
 - Never assume a previously observed track index is still correct.
 - Resolve names from a fresh snapshot immediately before write operations.
 - Dry-run destructive or large writes first.
 - Do not overwrite existing clips implicitly.
+- Do not delete tracks or scenes without explicit destructive permission.
+- Do not delete the final regular track in a Live Set.
+- Treat installed Packs, User Library, and Current Project Browser contents as
+  user-specific resources that must be discovered before use.
+- Tordo is human-ear-in-the-loop: it can inspect and edit project state, but it
+  cannot hear or judge audio quality by itself.
 
-## Known Limits
+## Trademark Notice
 
-- Existing clip renaming is not yet exposed as a first-class operation.
-- Existing object selectors still prefer unique names through `*_selector.name`. Duplicate track and scene names are refused by name; selector index plus `expected_name` can validate position but is not durable object identity. Same-track duplicate clip names require scene context.
-- The current system is human-ear-in-the-loop. Tordo can inspect structure, notes, parameters, and diffs, but it does not hear audio quality by itself.
-- Browser-backed sound selection is user-library dependent. Agent workflows must search available Browser items before using racks or presets in portable plans.
-- Some Ableton Browser roots are not fully mapped yet, including `All`, `Modulators`, `Grooves`, `Tunings`, and `Templates`.
-- `Plug-Ins` returned no items in the latest local browser query and needs a dedicated verification pass.
-- Third-party plug-in internals are limited to parameters exposed through Live's automation model.
-
-## More Detail
-
-- [Bridge core](docs/bridge-core.md)
-- [Capability map](docs/capability-map.md)
-- [Agent contract](docs/agent-contract.md)
-- [Contract validation](docs/contract-validation.md)
-- [Bridge architecture](docs/bridge-architecture.md)
-- [Human-ear-in-the-loop composition plan](docs/human-ear-in-the-loop-composition.md)
-- [Handoff](docs/HANDOFF.md)
+Tordo is an independent project and is not affiliated with, authorized,
+sponsored, or endorsed by Ableton AG. Ableton and Live are trademarks of Ableton
+AG.

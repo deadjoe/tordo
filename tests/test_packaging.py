@@ -13,6 +13,20 @@ class PackagingConfigTests(unittest.TestCase):
             "tordo/remote_assets/TordoBridge",
         )
 
+    def test_sdist_public_surface_is_explicitly_scoped(self):
+        pyproject = tomllib.loads(Path("pyproject.toml").read_text())
+        include = set(pyproject["tool"]["hatch"]["build"]["targets"]["sdist"]["include"])
+
+        self.assertEqual(
+            include,
+            {
+                "/README.md",
+                "/pyproject.toml",
+                "/remote-script/TordoBridge",
+                "/tordo",
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
