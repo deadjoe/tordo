@@ -59,6 +59,21 @@ class SkillPackageTest(unittest.TestCase):
         self.assertIn("--include-folders", workflows)
         self.assertIn("Folder or pack nodes are useful for discovery but are not load targets", workflows)
 
+    def test_first_time_acceptance_workflow_is_documented(self):
+        skill = (SKILL_DIR / "SKILL.md").read_text()
+        workflows = (SKILL_DIR / "references" / "workflows.md").read_text()
+
+        self.assertIn("first-time setup, acceptance test", skill)
+        self.assertIn("## First-Time Setup And Acceptance Test", workflows)
+        self.assertIn("uv tool install tordo", workflows)
+        self.assertIn("pipx install tordo", workflows)
+        self.assertIn("tordo install-remote-script", workflows)
+        self.assertIn("Tordo Acceptance", workflows)
+        self.assertIn("First Write Check", workflows)
+        self.assertIn("tordo apply-plan PLAN.json --prepared-out PREPARED.json", workflows)
+        self.assertIn("tordo apply-plan PLAN.json --apply --prepared-out PREPARED-apply.json", workflows)
+        self.assertIn("tordo set-notes --limit-per-clip 20", workflows)
+
     def test_skill_documents_return_and_master_mixer_targets(self):
         skill = (SKILL_DIR / "SKILL.md").read_text()
         schema = (SKILL_DIR / "references" / "plan-schema.md").read_text()

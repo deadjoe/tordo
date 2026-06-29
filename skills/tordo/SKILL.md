@@ -53,6 +53,6 @@ For any non-trivial task:
 ## References
 
 - Read `references/contract.md` when you need exact contract boundaries, stable commands, or scope limits.
-- Read `references/workflows.md` when you need a concrete inspect, edit, Browser, or human-feedback workflow.
+- Read `references/workflows.md` when you need a first-time setup, acceptance test, inspect, edit, Browser, or human-feedback workflow.
 - Read `references/plan-schema.md` when writing JSON plans or selectors.
 - Read `references/troubleshooting.md` when `doctor`, preflight, dry-run, Browser search, or bridge runtime checks fail.
