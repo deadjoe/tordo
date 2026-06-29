@@ -18,6 +18,8 @@ class PublicReadmeTests(unittest.TestCase):
         self.assertIn("Add the Tordo skill from https://github.com/deadjoe/tordo/tree/main/skills/tordo", content)
         self.assertIn("approval, run `tordo doctor`", content)
         self.assertIn("Skill support differs by agent", content)
+        self.assertIn("For normal use, install the released CLI", content)
+        self.assertIn("For unreleased development builds from the GitHub source tree", content)
         self.assertIn("uv tool install tordo", content)
         self.assertIn("uv tool install git+https://github.com/deadjoe/tordo.git", content)
 
@@ -45,6 +47,8 @@ class PublicReadmeTests(unittest.TestCase):
             "roadmap",
             "uv run tordo dev",
             "Release and TestPyPI preparation",
+            "after the package is available on PyPI",
+            "Current alpha source install",
         ]
         for term in forbidden:
             self.assertNotIn(term, content)
