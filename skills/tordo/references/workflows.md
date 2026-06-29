@@ -24,6 +24,106 @@ tordo install-remote-script
 
 Then ask the user to restart Ableton Live, select `TordoBridge` as a Control Surface, and rerun `tordo doctor`. Do not proceed with Live writes until `doctor` passes.
 
+## First-Time Setup And Acceptance Test
+
+Use this when the user asks to install Tordo, confirm a new machine, or run a clean acceptance test.
+
+1. Check whether `tordo` is available:
+
+```bash
+tordo doctor
+```
+
+2. If `tordo` is not found, explain that the CLI must be installed before Live control is possible. Ask before installing. For normal PyPI installs, propose:
+
+```bash
+uv tool install tordo
+```
+
+If the user prefers `pipx`, use:
+
+```bash
+pipx install tordo
+```
+
+3. Run `tordo doctor` again. If the Remote Script is missing or mismatched, run:
+
+```bash
+tordo install-remote-script
+```
+
+4. Ask the user to restart Ableton Live and select `TordoBridge` in Settings -> Link, Tempo & MIDI -> Control Surface. Input and Output can stay `None`.
+5. Run `tordo doctor` again and continue only when the checks required for runtime writes pass.
+6. Run:
+
+```bash
+tordo schema
+tordo capabilities
+tordo snapshot
+```
+
+7. If the user wants a minimal write acceptance test, confirm the current Live Set is disposable or that the user accepts adding one small test track, scene, and clip.
+8. Create a temporary JSON plan with one MIDI track, one scene, one MIDI clip, and a few notes:
+
+```json
+{
+  "plan_version": 1,
+  "name": "tordo-first-write-check",
+  "operations": [
+    {
+      "id": "track.acceptance",
+      "type": "create_midi_track",
+      "index": -1,
+      "name": "Tordo Acceptance"
+    },
+    {
+      "id": "scene.acceptance",
+      "type": "create_scene",
+      "index": -1,
+      "name": "Tordo Acceptance"
+    },
+    {
+      "id": "clip.acceptance",
+      "type": "create_midi_clip",
+      "track_ref": "track.acceptance",
+      "scene_ref": "scene.acceptance",
+      "length": 4.0,
+      "name": "First Write Check"
+    },
+    {
+      "type": "add_notes",
+      "clip_ref": "clip.acceptance",
+      "notes": [
+        {"pitch": 60, "start_time": 0.0, "duration": 0.5, "velocity": 92},
+        {"pitch": 64, "start_time": 0.5, "duration": 0.5, "velocity": 88},
+        {"pitch": 67, "start_time": 1.0, "duration": 1.0, "velocity": 94}
+      ]
+    }
+  ]
+}
+```
+
+9. Dry-run first:
+
+```bash
+tordo apply-plan PLAN.json --prepared-out PREPARED.json --timeout 120
+```
+
+10. Inspect the prepared plan and response. If acceptable, apply:
+
+```bash
+tordo apply-plan PLAN.json --apply --prepared-out PREPARED-apply.json --timeout 120
+```
+
+11. Verify with:
+
+```bash
+tordo snapshot
+tordo set-notes --limit-per-clip 20
+```
+
+Report the installed CLI version, bridge version, whether `doctor` passed, and whether the test clip and notes are visible in verification output.
+
 ## Inspect A Set
 
 1. Run `tordo doctor`.
