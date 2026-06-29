@@ -1,6 +1,6 @@
 [project]
 name = "tordo"
-version = "0.1.2"
+version = "0.1.3"
 description = "Agent-facing CLI toolkit for safely inspecting and controlling Ableton Live."
 readme = "README.md"
 license = "Apache-2.0"

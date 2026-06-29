@@ -52,17 +52,14 @@ Tordo previews changes before applying them.
 Skill support differs by agent. If your agent cannot install a Skill directly
 from GitHub, clone this repository and point the agent at `skills/tordo/`.
 
-Manual CLI setup is also available.
-
-Install the CLI.
-
-Published package install, after the package is available on PyPI:
+Manual CLI setup is also available. For normal use, install the released CLI
+from PyPI:
 
 ```bash
 uv tool install tordo
 ```
 
-Current alpha source install:
+For unreleased development builds from the GitHub source tree:
 
 ```bash
 uv tool install git+https://github.com/deadjoe/tordo.git
