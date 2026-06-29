@@ -59,12 +59,6 @@ from PyPI:
 uv tool install tordo
 ```
 
-For unreleased development builds from the GitHub source tree:
-
-```bash
-uv tool install git+https://github.com/deadjoe/tordo.git
-```
-
 Install the Ableton Remote Script into your Ableton User Library:
 
 ```bash

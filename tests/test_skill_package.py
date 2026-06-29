@@ -89,8 +89,9 @@ class SkillPackageTest(unittest.TestCase):
 
         self.assertIn("Ask before installing or modifying the user's environment", troubleshooting)
         self.assertIn("uv tool install tordo", troubleshooting)
-        self.assertIn("uv tool install git+https://github.com/deadjoe/tordo.git", troubleshooting)
-        self.assertIn("pipx install", troubleshooting)
+        self.assertIn("pipx install tordo", troubleshooting)
+        self.assertIn("neither `uv` nor `pipx` is available", troubleshooting)
+        self.assertNotIn("uv tool install git+https://github.com/deadjoe/tordo.git", troubleshooting)
         self.assertIn("run `tordo doctor` again", troubleshooting)
 
     def test_openai_metadata_mentions_skill_token(self):

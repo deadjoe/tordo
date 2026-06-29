@@ -46,6 +46,8 @@ If the user prefers `pipx`, use:
 pipx install tordo
 ```
 
+If neither `uv` nor `pipx` is available, stop and explain that the CLI installer is missing. Ask the user whether they want to install a Python tool manager or use another environment that already has one. Do not attempt Live writes until the CLI is installed and `tordo doctor` runs.
+
 3. Run `tordo doctor` again. If the Remote Script is missing or mismatched, run:
 
 ```bash
