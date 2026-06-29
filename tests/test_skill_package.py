@@ -38,6 +38,8 @@ class SkillPackageTest(unittest.TestCase):
         self.assertIn("## Verified Envelope", content)
         self.assertIn("In scope: macOS, Ableton Live Suite `>=12.4`, Session View MIDI", content)
         self.assertIn("Out of scope: Windows, audio clip import, automation editing", content)
+        self.assertIn("If `tordo` is not found", content)
+        self.assertIn("ask the user before installing", content)
         self.assertIn("If a track or scene name is duplicated, stop and ask the human", content)
         self.assertIn("--no-cleanup-empty-project-tracks", content)
         self.assertIn("Live requires at least one regular track", content)
@@ -66,6 +68,15 @@ class SkillPackageTest(unittest.TestCase):
             self.assertIn("track_type=return", content)
             self.assertIn("track_type=master", content)
         self.assertIn("master track has no sends", schema)
+
+    def test_troubleshooting_gives_cli_install_commands(self):
+        troubleshooting = (SKILL_DIR / "references" / "troubleshooting.md").read_text()
+
+        self.assertIn("Ask before installing or modifying the user's environment", troubleshooting)
+        self.assertIn("uv tool install tordo", troubleshooting)
+        self.assertIn("uv tool install git+https://github.com/deadjoe/tordo.git", troubleshooting)
+        self.assertIn("pipx install", troubleshooting)
+        self.assertIn("run `tordo doctor` again", troubleshooting)
 
     def test_openai_metadata_mentions_skill_token(self):
         content = (SKILL_DIR / "agents" / "openai.yaml").read_text()
