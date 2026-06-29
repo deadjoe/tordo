@@ -20,12 +20,20 @@ class PackagingConfigTests(unittest.TestCase):
         self.assertEqual(
             include,
             {
+                "/LICENSE",
                 "/README.md",
                 "/pyproject.toml",
                 "/remote-script/TordoBridge",
                 "/tordo",
             },
         )
+
+    def test_package_declares_apache_license(self):
+        pyproject = tomllib.loads(Path("pyproject.toml").read_text())
+        project = pyproject["project"]
+
+        self.assertEqual(project["license"], "Apache-2.0")
+        self.assertIn("License :: OSI Approved :: Apache Software License", project["classifiers"])
 
 
 if __name__ == "__main__":
