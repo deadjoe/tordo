@@ -1,6 +1,7 @@
 import json
 import subprocess
 import sys
+import tarfile
 import tempfile
 import zipfile
 from pathlib import Path
@@ -8,12 +9,24 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DIST_DIR = REPO_ROOT / "dist"
 REMOTE_BRIDGE_IN_WHEEL = "tordo/remote_assets/TordoBridge/bridge.py"
+FORBIDDEN_SDIST_PATHS = {
+    ".github",
+    "artifacts",
+    "docs",
+    "exports",
+    "test_midi",
+    "tests",
+    "tools",
+    "index.html",
+    "assets",
+}
 
 
 def main():
     wheel = single_file("*.whl")
     sdist = single_file("*.tar.gz")
     check_wheel_contains_remote_script(wheel)
+    check_sdist_public_surface(sdist)
     check_wheel_installs_and_runs(wheel)
     print(
         json.dumps(
@@ -23,6 +36,7 @@ def main():
                 "sdist": str(sdist),
                 "checked": [
                     "wheel_contains_remote_script",
+                    "sdist_public_surface",
                     "wheel_installs_in_clean_venv",
                     "installed_cli_runs_schema",
                     "installed_cli_installs_remote_script_to_temp_user_library",
@@ -46,6 +60,24 @@ def check_wheel_contains_remote_script(wheel):
         names = set(archive.namelist())
     if REMOTE_BRIDGE_IN_WHEEL not in names:
         raise SystemExit("wheel missing %s" % REMOTE_BRIDGE_IN_WHEEL)
+
+
+def check_sdist_public_surface(sdist):
+    with tarfile.open(sdist) as archive:
+        names = archive.getnames()
+
+    for name in names:
+        relative = strip_sdist_root(name)
+        first = relative.split("/", 1)[0]
+        if first in FORBIDDEN_SDIST_PATHS:
+            raise SystemExit("sdist includes non-public path %s" % relative)
+
+
+def strip_sdist_root(path):
+    parts = path.split("/", 1)
+    if len(parts) == 1:
+        return ""
+    return parts[1]
 
 
 def check_wheel_installs_and_runs(wheel):

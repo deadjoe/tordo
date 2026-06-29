@@ -1,6 +1,6 @@
 [project]
 name = "tordo"
-version = "0.1.1"
+version = "0.1.2"
 description = "Agent-facing CLI toolkit for safely inspecting and controlling Ableton Live."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -33,6 +33,14 @@ packages = ["tordo"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "remote-script/TordoBridge" = "tordo/remote_assets/TordoBridge"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/README.md",
+    "/pyproject.toml",
+    "/remote-script/TordoBridge",
+    "/tordo",
+]
 
 [dependency-groups]
 dev = [

@@ -28,7 +28,7 @@ class CliContractTests(unittest.TestCase):
         self.assertIn("--split-notes-dir", output)
 
     def test_agent_contract_lists_stable_agent_commands(self):
-        contract = Path("docs/agent-contract.md").read_text()
+        contract = Path("skills/tordo/references/contract.md").read_text()
         commands = set(agent_usable_commands(contract))
         expected = set(STABLE_COMMANDS) - {"dev"}
 
@@ -44,9 +44,9 @@ def help_output(argv):
 
 
 def agent_usable_commands(contract):
-    marker = "Current agent-usable commands:"
+    marker = "Use top-level stable CLI commands:"
     start = contract.index(marker) + len(marker)
-    end = contract.index("Repository examples", start)
+    end = contract.index("Treat `tordo dev ...`", start)
     section = contract[start:end]
     commands = []
     for match in re.finditer(r"`(?:uv run )?tordo ([^`\s]+)", section):
