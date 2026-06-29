@@ -31,6 +31,29 @@ Tordo is in developer alpha.
 
 ## End-User Installation
 
+Recommended setup is agent-led:
+
+1. Open a skill-capable AI agent, such as Claude, Claude Code, Codex, or another
+   assistant that can install or read agent skills from a public GitHub repo.
+2. Paste this request:
+
+   ```text
+   Add the Tordo skill from https://github.com/deadjoe/tordo/tree/main/skills/tordo,
+   then set it up for Ableton Live on this Mac and check everything works.
+   ```
+
+3. Let the agent inspect the Skill, install or expose the `tordo` CLI with your
+   approval, run `tordo doctor`, install the Ableton Remote Script, and guide you
+   through the required Ableton Live restart and Control Surface selection.
+
+After setup, open a Live Set and ask the agent for the musical change you want.
+Tordo previews changes before applying them.
+
+Skill support differs by agent. If your agent cannot install a Skill directly
+from GitHub, clone this repository and point the agent at `skills/tordo/`.
+
+Manual CLI setup is also available.
+
 Install the CLI.
 
 Published package install, after the package is available on PyPI:
@@ -71,10 +94,24 @@ tordo capabilities
 
 ## Agent Skill
 
-The first agent-facing Skill lives in `skills/tordo/`. It teaches an AI agent to
-use the installed `tordo` CLI, inspect runtime capabilities, discover available
-Browser resources, dry-run before apply, and ask for human listening feedback
-when a decision depends on musical taste.
+The first agent-facing Skill lives in `skills/tordo/`.
+
+Give a compatible AI agent this Skill path:
+
+```text
+https://github.com/deadjoe/tordo/tree/main/skills/tordo
+```
+
+The Skill teaches the agent to:
+
+- check whether the local `tordo` CLI is installed
+- propose a `tordo` CLI install command and ask before running it
+- run `tordo doctor`, `tordo schema`, and `tordo capabilities`
+- install the `TordoBridge` Remote Script into Ableton Live
+- discover installed Packs, User Library, and Current Project Browser resources
+- dry-run every plan before apply
+- verify changes after apply
+- ask for human listening feedback when a decision depends on musical taste
 
 ## Basic Plan Flow
 

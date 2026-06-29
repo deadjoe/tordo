@@ -4,7 +4,23 @@ Use this when commands fail. Prefer reporting exact failed checks and next actio
 
 ## `tordo` Is Not Found
 
-Tell the user that the CLI is not on `PATH`. Do not attempt Live writes. If working from a repository checkout, use `uv run tordo ...`; if using an installed package, ask the user to install or expose the `tordo` executable.
+Tell the user that the CLI is not on `PATH`. Do not attempt Live writes.
+
+Ask before installing or modifying the user's environment. Suggested install commands:
+
+```bash
+uv tool install tordo
+```
+
+For the current alpha source install before a PyPI release is available:
+
+```bash
+uv tool install git+https://github.com/deadjoe/tordo.git
+```
+
+If the user prefers `pipx`, use the same package target with `pipx install`.
+
+If working from a repository checkout, use `uv run tordo ...` instead of requiring a global CLI. After installation or PATH changes, run `tordo doctor` again.
 
 ## Ableton Live Is Missing Or Too Old
 

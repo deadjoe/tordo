@@ -23,7 +23,7 @@ Tordo is an independent project and is not affiliated with, authorized, sponsore
 
 For any non-trivial task:
 
-1. Run `tordo doctor` before assuming the environment works. For a concise summary, run `python scripts/doctor.py` from this skill folder.
+1. Run `tordo doctor` before assuming the environment works. If `tordo` is not found, read `references/troubleshooting.md`, propose a CLI install command, and ask the user before installing. For a concise summary after the CLI exists, run `python scripts/doctor.py` from this skill folder.
 2. Run `tordo schema` and `tordo capabilities`; treat their output as newer than this Skill.
 3. Run `tordo snapshot` before planning against existing Live objects.
 4. If choosing sounds, run `tordo browser-items` first across relevant roots, including installed `packs` and `user_library`, and only use returned loadable items.

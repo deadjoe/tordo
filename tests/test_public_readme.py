@@ -15,6 +15,9 @@ class PublicReadmeTests(unittest.TestCase):
         for section in required_sections:
             self.assertIn(section, content)
         self.assertIn("Apache License, Version 2.0", content)
+        self.assertIn("Add the Tordo skill from https://github.com/deadjoe/tordo/tree/main/skills/tordo", content)
+        self.assertIn("approval, run `tordo doctor`", content)
+        self.assertIn("Skill support differs by agent", content)
         self.assertIn("uv tool install tordo", content)
         self.assertIn("uv tool install git+https://github.com/deadjoe/tordo.git", content)
 
