@@ -6,21 +6,19 @@ Use this when commands fail. Prefer reporting exact failed checks and next actio
 
 Tell the user that the CLI is not on `PATH`. Do not attempt Live writes.
 
-Ask before installing or modifying the user's environment. Suggested install commands:
+Ask before installing or modifying the user's environment. For normal installs from PyPI, suggest:
 
 ```bash
 uv tool install tordo
 ```
 
-For the current alpha source install before a PyPI release is available:
+If the user prefers `pipx`, suggest:
 
 ```bash
-uv tool install git+https://github.com/deadjoe/tordo.git
+pipx install tordo
 ```
 
-If the user prefers `pipx`, use the same package target with `pipx install`.
-
-If working from a repository checkout, use `uv run tordo ...` instead of requiring a global CLI. After installation or PATH changes, run `tordo doctor` again.
+If neither `uv` nor `pipx` is available, explain that Tordo needs a Python CLI installer before it can be installed. Ask the user how they want to proceed; do not silently install package managers. If working from a repository checkout, use `uv run tordo ...` instead of requiring a global CLI. After installation or PATH changes, run `tordo doctor` again.
 
 ## Ableton Live Is Missing Or Too Old
 

@@ -19,9 +19,8 @@ class PublicReadmeTests(unittest.TestCase):
         self.assertIn("approval, run `tordo doctor`", content)
         self.assertIn("Skill support differs by agent", content)
         self.assertIn("For normal use, install the released CLI", content)
-        self.assertIn("For unreleased development builds from the GitHub source tree", content)
         self.assertIn("uv tool install tordo", content)
-        self.assertIn("uv tool install git+https://github.com/deadjoe/tordo.git", content)
+        self.assertNotIn("uv tool install git+https://github.com/deadjoe/tordo.git", content)
 
     def test_readme_uses_package_index_safe_logo_url_and_version_terms(self):
         content = Path("README.md").read_text()
@@ -49,6 +48,7 @@ class PublicReadmeTests(unittest.TestCase):
             "Release and TestPyPI preparation",
             "after the package is available on PyPI",
             "Current alpha source install",
+            "For unreleased development builds from the GitHub source tree",
         ]
         for term in forbidden:
             self.assertNotIn(term, content)
