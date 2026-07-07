@@ -180,6 +180,90 @@ class PlanPreflightSelectorTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "conflicting scene_name"):
             prepare_plan_for_apply(plan, SNAPSHOT)
 
+    def test_set_clip_properties_resolves_clip_with_scene_context(self):
+        plan = {
+            "plan_version": 1,
+            "operations": [
+                {
+                    "type": "set_clip_properties",
+                    "track_selector": {"index": 0, "expected_name": "Bass"},
+                    "scene_selector": {"index": 1, "expected_name": "Verse"},
+                    "clip_selector": {"name": "Loop"},
+                    "name": "Loop B",
+                }
+            ],
+        }
+
+        prepared, report = prepare_plan_for_apply(plan, SNAPSHOT)
+
+        operation = prepared["operations"][0]
+        self.assertEqual(operation["track_index"], 0)
+        self.assertEqual(operation["scene_index"], 1)
+        self.assertEqual(operation["expected_clip_name"], "Loop")
+        self.assertEqual(report["resolved_clips"][0]["scene_index"], 1)
+
+    def test_set_clip_loop_resolves_clip_with_scene_context(self):
+        plan = {
+            "plan_version": 1,
+            "operations": [
+                {
+                    "type": "set_clip_loop",
+                    "track_selector": {"index": 0, "expected_name": "Bass"},
+                    "scene_selector": {"index": 0, "expected_name": "Verse"},
+                    "clip_selector": {"name": "Loop"},
+                    "loop_start": 0.0,
+                    "loop_end": 8.0,
+                }
+            ],
+        }
+
+        prepared, report = prepare_plan_for_apply(plan, SNAPSHOT)
+
+        operation = prepared["operations"][0]
+        self.assertEqual(operation["track_index"], 0)
+        self.assertEqual(operation["scene_index"], 0)
+        self.assertEqual(operation["expected_clip_name"], "Loop")
+        self.assertEqual(report["resolved_clips"][0]["scene_index"], 0)
+
+    def test_delete_device_resolves_track_by_name(self):
+        plan = {
+            "plan_version": 1,
+            "operations": [
+                {
+                    "type": "delete_device",
+                    "track_selector": {"name": "Lead"},
+                    "device_index": 0,
+                    "allow_destructive": True,
+                }
+            ],
+        }
+
+        prepared, report = prepare_plan_for_apply(plan, SNAPSHOT)
+
+        operation = prepared["operations"][0]
+        self.assertEqual(operation["track_index"], 2)
+        self.assertEqual(operation["expected_track_name"], "Lead")
+        self.assertEqual(report["resolved_tracks"][0]["track_name"], "Lead")
+
+    def test_set_scene_properties_resolves_scene_by_index(self):
+        plan = {
+            "plan_version": 1,
+            "operations": [
+                {
+                    "type": "set_scene_properties",
+                    "scene_selector": {"index": 1, "expected_name": "Verse"},
+                    "name": "Chorus",
+                }
+            ],
+        }
+
+        prepared, report = prepare_plan_for_apply(plan, SNAPSHOT)
+
+        operation = prepared["operations"][0]
+        self.assertEqual(operation["scene_index"], 1)
+        self.assertEqual(operation["expected_scene_name"], "Verse")
+        self.assertEqual(report["resolved_scenes"][0]["scene_index"], 1)
+
     def test_conflicting_clip_name_and_expected_name_refuses(self):
         plan = {
             "plan_version": 1,

@@ -27,14 +27,15 @@ For any non-trivial task:
 2. Run `tordo schema` and `tordo capabilities`; treat their output as newer than this Skill.
 3. Run `tordo snapshot` before planning against existing Live objects.
 4. If choosing sounds, run `tordo browser-items` first across relevant roots, including installed `packs` and `user_library`, and only use returned loadable items.
-5. Build an explicit JSON plan.
-6. Dry-run with `tordo apply-plan PLAN --prepared-out PREPARED`.
-7. Inspect the prepared plan and dry-run response.
-8. Check whether preflight appended default empty-project track cleanup. Use `--no-cleanup-empty-project-tracks` if the default empty tracks must be preserved.
-9. When clearing or replacing a Set, keep or create a holder regular track before deleting all existing regular tracks; Live requires at least one regular track at every step.
-10. Apply only after the dry-run is acceptable: `tordo apply-plan PLAN --apply --prepared-out PREPARED`.
-11. Verify through `tordo snapshot`, `tordo set-notes`, `tordo clip-notes`, `tordo export`, `tordo analyze`, or `tordo diff`.
-12. Ask for human listening feedback before taste-based follow-up edits.
+5. If the task is generating or importing multi-track music, read `references/music-arrangement.md` before planning; run its post-write musical sanity checklist before declaring the task done.
+6. Build an explicit JSON plan.
+7. Dry-run with `tordo apply-plan PLAN --prepared-out PREPARED`.
+8. Inspect the prepared plan and dry-run response.
+9. Check whether preflight appended default empty-project track cleanup. Use `--no-cleanup-empty-project-tracks` if the default empty tracks must be preserved.
+10. When clearing or replacing a Set, keep or create a holder regular track before deleting all existing regular tracks; Live requires at least one regular track at every step.
+11. Apply only after the dry-run is acceptable: `tordo apply-plan PLAN --apply --prepared-out PREPARED`.
+12. Verify through `tordo snapshot`, `tordo set-notes`, `tordo clip-notes`, `tordo export`, `tordo analyze`, or `tordo diff`.
+13. Ask for human listening feedback before taste-based follow-up edits.
 
 ## Safety Rules
 

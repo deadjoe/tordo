@@ -21,7 +21,7 @@ class DoctorTests(unittest.TestCase):
             self.assertEqual(bridge_version_from_source(path), "9.8.7")
 
     def test_expected_bridge_version_comes_from_packaged_source(self):
-        self.assertEqual(expected_bridge_version(), "0.8.1")
+        self.assertEqual(expected_bridge_version(), "0.9.1")
 
 
 if __name__ == "__main__":

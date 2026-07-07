@@ -26,12 +26,26 @@ class SkillPackageTest(unittest.TestCase):
             "references/contract.md",
             "references/workflows.md",
             "references/plan-schema.md",
+            "references/music-arrangement.md",
             "references/troubleshooting.md",
             "scripts/doctor.py",
             "agents/openai.yaml",
         }
         for relative_path in expected:
             self.assertTrue((SKILL_DIR / relative_path).exists(), relative_path)
+
+    def test_music_arrangement_guide_covers_quality_gap(self):
+        skill = (SKILL_DIR / "SKILL.md").read_text()
+        guide = (SKILL_DIR / "references" / "music-arrangement.md").read_text()
+
+        self.assertIn("references/music-arrangement.md", skill)
+        self.assertIn("## Source MIDI Import Discipline", guide)
+        self.assertIn("## Role Layout And Register Separation", guide)
+        self.assertIn("## Velocity And Feel", guide)
+        self.assertIn("## Mixer Starting Points", guide)
+        self.assertIn("## Post-Write Musical Sanity Checklist", guide)
+        self.assertIn("## Human-Ear Rule", guide)
+        self.assertIn("Never claim the result sounds good", guide)
 
     def test_verified_envelope_and_brand_boundaries_are_explicit(self):
         content = (SKILL_DIR / "SKILL.md").read_text()

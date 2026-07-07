@@ -16,6 +16,7 @@ TRACK_TARGET_OPERATIONS = {
     "add_notes",
     "create_midi_clip",
     "crop_clip",
+    "delete_device",
     "delete_track",
     "duplicate_clip_loop",
     "duplicate_track",
@@ -25,6 +26,8 @@ TRACK_TARGET_OPERATIONS = {
     "modify_notes",
     "quantize_clip",
     "remove_notes",
+    "set_clip_loop",
+    "set_clip_properties",
     "set_device_parameter",
     "set_track_mixer",
     "set_track_state",
@@ -43,6 +46,9 @@ SCENE_TARGET_OPERATIONS = {
     "modify_notes",
     "quantize_clip",
     "remove_notes",
+    "set_clip_loop",
+    "set_clip_properties",
+    "set_scene_properties",
     "stop_clip_slot",
 }
 
@@ -53,6 +59,8 @@ CLIP_TARGET_OPERATIONS = {
     "modify_notes",
     "quantize_clip",
     "remove_notes",
+    "set_clip_loop",
+    "set_clip_properties",
 }
 
 REGULAR_TRACK_CREATE_OPERATIONS = {

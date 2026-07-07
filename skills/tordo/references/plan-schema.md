@@ -117,6 +117,8 @@ Mixer targets can be regular tracks, return tracks, or the master track when `to
 
 Use `track_type=return` for return-track sends, volume, and panning. Use `track_type=master` for master volume and panning only; the master track has no sends.
 
+Return-track behaviors verified in Live 12.4: `create_return_track` always appends (an `index` other than the append position is refused), and Live prefixes return-track names with a positional letter — a track created as `Tordo Return` reads back as `C-Tordo Return`, and the letter shifts when return tracks are added, removed, or reordered. Always select return tracks by the name shown in a fresh `tordo snapshot`.
+
 ## Use Scene Context For A Clip
 
 ```json
@@ -167,9 +169,75 @@ Use a returned loadable item:
 
 Do not invent Browser URIs or assume pack names are portable. `packs`, `user_library`, and `current_project` are user-specific discovery roots; inspect them before choosing sounds when the task depends on the user's installed resources.
 
+## Global Song Properties
+
+`set_signature` and `set_scale` are available when `tordo schema` lists them (bridge `0.9.0+`):
+
+```json
+{
+  "plan_version": 1,
+  "name": "set-song-context",
+  "operations": [
+    {"type": "set_signature", "numerator": 6, "denominator": 8},
+    {"type": "set_scale", "root_note": 2, "scale_name": "Minor", "scale_mode": true}
+  ]
+}
+```
+
+`root_note` is a pitch class from 0 (C) to 11 (B). Read the current key back from the `song` section of `tordo snapshot` before generating notes; prefer the user's configured key over guessing.
+
+## Edit Clip Loop, Name, And Color
+
+`set_clip_loop` writes loop and marker positions in beats; `set_clip_properties` renames and recolors:
+
+```json
+{
+  "plan_version": 1,
+  "name": "tighten-loop",
+  "operations": [
+    {
+      "type": "set_clip_loop",
+      "track_selector": {"name": "Bass"},
+      "clip_selector": {"name": "Loop"},
+      "looping": true,
+      "loop_start": 0.0,
+      "loop_end": 8.0
+    },
+    {
+      "type": "set_clip_properties",
+      "track_selector": {"name": "Bass"},
+      "clip_selector": {"name": "Loop"},
+      "name": "Bass Loop 8bar",
+      "color": 13016944
+    }
+  ]
+}
+```
+
+Renaming a clip, scene, or track invalidates name selectors later in the same plan; rename last, or re-run `tordo snapshot` and use a follow-up plan. `set_scene_properties` and the `color` field on `set_track_state` follow the same pattern. Colors are integer RGB values; Live snaps them to its palette.
+
+## Undo And Redo
+
+`undo` and `redo` operate on Live's own history and need no selectors:
+
+```json
+{
+  "plan_version": 1,
+  "name": "undo-last-write",
+  "operations": [{"type": "undo"}]
+}
+```
+
+Use `undo` as a recovery tool after a verified-wrong apply, then re-check state with `tordo snapshot`. Two verified Live behaviors make undo a blunt instrument:
+
+- Live can coalesce consecutive bridge writes into a single undo step. One `undo` may revert every plan applied since the last human interaction, not just the last operation. `redo` restores the coalesced step the same way.
+- Live's history also contains the human's manual edits.
+
+Always take a fresh `tordo snapshot` after `undo` or `redo` and verify the actual state before planning anything else.
+
 ## Destructive Operations
 
-Deleting tracks or scenes must be explicit:
+Deleting tracks, scenes, or devices must be explicit:
 
 ```json
 {
@@ -179,6 +247,24 @@ Deleting tracks or scenes must be explicit:
     {
       "type": "delete_track",
       "track_selector": {"index": 3, "expected_name": "Scratch"},
+      "allow_destructive": true
+    }
+  ]
+}
+```
+
+`delete_device` also requires `allow_destructive: true` plus a `device_index` and an optional `device_name` assertion:
+
+```json
+{
+  "plan_version": 1,
+  "name": "remove-wrong-device",
+  "operations": [
+    {
+      "type": "delete_device",
+      "track_selector": {"name": "Lead"},
+      "device_index": 1,
+      "device_name": "Auto Filter",
       "allow_destructive": true
     }
   ]

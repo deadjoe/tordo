@@ -19,7 +19,7 @@ except ImportError:
 
 HOST = "127.0.0.1"
 PORT = 8765
-BRIDGE_VERSION = "0.8.1"
+BRIDGE_VERSION = "0.9.1"
 PROTOCOL_VERSION = 1
 MAX_REQUEST_BYTES = 1024 * 1024
 MAX_NOTES_PER_CLIP = 20000
@@ -254,7 +254,11 @@ class TordoBridge(ControlSurface):
             },
             "plan_operations": [
                 "set_tempo",
+                "set_signature",
+                "set_scale",
                 "set_transport",
+                "undo",
+                "redo",
                 "set_track_state",
                 "set_track_mixer",
                 "set_device_parameter",
@@ -266,7 +270,9 @@ class TordoBridge(ControlSurface):
                 "create_scene",
                 "duplicate_scene",
                 "delete_scene",
+                "set_scene_properties",
                 "insert_device",
+                "delete_device",
                 "load_browser_item",
                 "create_midi_clip",
                 "add_notes",
@@ -275,6 +281,8 @@ class TordoBridge(ControlSurface):
                 "quantize_clip",
                 "duplicate_clip_loop",
                 "crop_clip",
+                "set_clip_loop",
+                "set_clip_properties",
                 "fire_clip_slot",
                 "stop_clip_slot",
                 "fire_scene",
@@ -711,6 +719,12 @@ def song_summary(song):
         "signature_denominator": safe_get(song, "signature_denominator"),
         "is_playing": safe_get(song, "is_playing"),
         "current_song_time": safe_get(song, "current_song_time"),
+        "root_note": safe_get(song, "root_note"),
+        "scale_name": safe_get(song, "scale_name"),
+        "scale_mode": safe_get(song, "scale_mode"),
+        "groove_amount": safe_get(song, "groove_amount"),
+        "can_undo": safe_get(song, "can_undo"),
+        "can_redo": safe_get(song, "can_redo"),
     }
 
 
@@ -760,11 +774,14 @@ def track_snapshot(track, index):
     return {
         "index": index,
         "name": safe_get(track, "name"),
+        "color": safe_number(safe_get(track, "color")),
         "is_foldable": safe_get(track, "is_foldable"),
         "can_be_armed": safe_get(track, "can_be_armed"),
         "arm": safe_get(track, "arm"),
         "mute": safe_get(track, "mute"),
         "solo": safe_get(track, "solo"),
+        "output_meter_left": safe_number(safe_get(track, "output_meter_left")),
+        "output_meter_right": safe_number(safe_get(track, "output_meter_right")),
         "mixer": mixer_summary(safe_get(track, "mixer_device")),
         "clip_slots": [clip_slot_summary(slot, slot_index) for slot_index, slot in enumerate(clip_slots)],
         "devices": [device_summary(device, device_index) for device_index, device in enumerate(devices)],
@@ -973,10 +990,20 @@ def apply_plan(song, plan, dry_run=True, application=None):
             summaries.append(apply_duplicate_scene(context, operation))
         elif operation_type == "delete_scene":
             summaries.append(apply_delete_scene(context, operation))
+        elif operation_type == "set_scene_properties":
+            summaries.append(apply_set_scene_properties(context, operation))
         elif operation_type == "set_tempo":
             summaries.append(apply_set_tempo(context, operation))
+        elif operation_type == "set_signature":
+            summaries.append(apply_set_signature(context, operation))
+        elif operation_type == "set_scale":
+            summaries.append(apply_set_scale(context, operation))
         elif operation_type == "set_transport":
             summaries.append(apply_set_transport(context, operation))
+        elif operation_type == "undo":
+            summaries.append(apply_undo(context, operation))
+        elif operation_type == "redo":
+            summaries.append(apply_redo(context, operation))
         elif operation_type == "set_track_state":
             summaries.append(apply_set_track_state(context, operation))
         elif operation_type == "set_track_mixer":
@@ -985,6 +1012,8 @@ def apply_plan(song, plan, dry_run=True, application=None):
             summaries.append(apply_set_device_parameter(context, operation))
         elif operation_type == "insert_device":
             summaries.append(apply_insert_device(context, operation))
+        elif operation_type == "delete_device":
+            summaries.append(apply_delete_device(context, operation))
         elif operation_type == "load_browser_item":
             summaries.append(apply_load_browser_item(context, operation))
         elif operation_type == "create_midi_clip":
@@ -1001,6 +1030,10 @@ def apply_plan(song, plan, dry_run=True, application=None):
             summaries.append(apply_duplicate_clip_loop(context, operation))
         elif operation_type == "crop_clip":
             summaries.append(apply_crop_clip(context, operation))
+        elif operation_type == "set_clip_loop":
+            summaries.append(apply_set_clip_loop(context, operation))
+        elif operation_type == "set_clip_properties":
+            summaries.append(apply_set_clip_properties(context, operation))
         elif operation_type == "fire_clip_slot":
             summaries.append(apply_fire_clip_slot(context, operation))
         elif operation_type == "stop_clip_slot":
@@ -1150,9 +1183,14 @@ def apply_create_return_track(context, operation):
         raise BridgeRequestError("bad_plan", "create_return_track index must be an integer")
 
     current_count = context.return_track_count if context.dry_run else len(safe_list(context.song, "return_tracks"))
-    return_track_index = current_count if requested_index < 0 else requested_index
-    if return_track_index > current_count:
-        raise BridgeRequestError("bad_plan", "create_return_track index is out of range")
+    # Live's Song.create_return_track() takes no index and always appends.
+    if requested_index >= 0 and requested_index != current_count:
+        raise BridgeRequestError(
+            "bad_plan",
+            "create_return_track cannot target index %s; Live always appends return tracks (next index: %s)"
+            % (requested_index, current_count),
+        )
+    return_track_index = current_count
 
     name = operation.get("name") or "AI Return Track"
     if context.dry_run:
@@ -1162,7 +1200,7 @@ def apply_create_return_track(context, operation):
         )
         context.return_track_count += 1
     else:
-        context.song.create_return_track(return_track_index)
+        context.song.create_return_track()
         track = safe_list(context.song, "return_tracks")[return_track_index]
         try:
             track.name = name
@@ -1309,6 +1347,38 @@ def apply_delete_scene(context, operation):
     return {"type": "delete_scene", "scene_index": scene_index, "name": name}
 
 
+def apply_set_scene_properties(context, operation):
+    scene_ref = context.resolve_scene(operation)
+    scene = scene_ref.get("scene")
+    updates = []
+    if "name" in operation:
+        updates.append({"field": "name", "previous": safe_get(scene, "name"), "value": str(operation.get("name"))})
+    if "color" in operation:
+        updates.append(
+            {
+                "field": "color",
+                "previous": safe_number(safe_get(scene, "color")),
+                "value": color_int(operation.get("color"), "set_scene_properties color"),
+            }
+        )
+    if not updates:
+        raise BridgeRequestError("bad_plan", "set_scene_properties requires name or color")
+    if not context.dry_run:
+        for update in updates:
+            try:
+                setattr(scene, update["field"], update["value"])
+            except Exception as exc:
+                raise BridgeRequestError(
+                    "write_failed",
+                    "Failed to set scene %s %s: %s" % (scene_ref["scene_index"], update["field"], exc),
+                )
+    return {
+        "type": "set_scene_properties",
+        "scene_index": scene_ref["scene_index"],
+        "updates": updates,
+    }
+
+
 def apply_set_tempo(context, operation):
     tempo = positive_float(operation.get("tempo"), "set_tempo tempo")
     if tempo < 20 or tempo > 999:
@@ -1321,6 +1391,79 @@ def apply_set_tempo(context, operation):
         "previous": previous,
         "tempo": tempo,
     }
+
+
+def apply_set_signature(context, operation):
+    numerator = int_range(operation.get("numerator"), 1, 99, "set_signature numerator")
+    denominator = int_range(operation.get("denominator"), 1, 16, "set_signature denominator")
+    if denominator not in (1, 2, 4, 8, 16):
+        raise BridgeRequestError("bad_plan", "set_signature denominator must be one of 1, 2, 4, 8, 16")
+    previous = {
+        "numerator": safe_get(context.song, "signature_numerator"),
+        "denominator": safe_get(context.song, "signature_denominator"),
+    }
+    if not context.dry_run:
+        try:
+            context.song.signature_numerator = numerator
+            context.song.signature_denominator = denominator
+        except Exception as exc:
+            raise BridgeRequestError("write_failed", "Failed to set signature: %s" % exc)
+    return {
+        "type": "set_signature",
+        "previous": previous,
+        "numerator": numerator,
+        "denominator": denominator,
+    }
+
+
+def apply_set_scale(context, operation):
+    song = context.song
+    updates = []
+    if "root_note" in operation:
+        value = int_range(operation.get("root_note"), 0, 11, "set_scale root_note")
+        updates.append({"field": "root_note", "previous": safe_get(song, "root_note"), "value": value})
+    if "scale_name" in operation:
+        value = str(operation.get("scale_name"))
+        updates.append({"field": "scale_name", "previous": safe_get(song, "scale_name"), "value": value})
+    if "scale_mode" in operation:
+        value = required_bool(operation.get("scale_mode"), "set_scale scale_mode")
+        updates.append({"field": "scale_mode", "previous": safe_get(song, "scale_mode"), "value": value})
+    if not updates:
+        raise BridgeRequestError("bad_plan", "set_scale requires root_note, scale_name, or scale_mode")
+    if not context.dry_run:
+        for update in updates:
+            try:
+                setattr(song, update["field"], update["value"])
+            except Exception as exc:
+                raise BridgeRequestError(
+                    "write_failed",
+                    "Failed to set scale %s: %s" % (update["field"], exc),
+                )
+    return {"type": "set_scale", "updates": updates}
+
+
+def apply_undo(context, operation):
+    can_undo = safe_get(context.song, "can_undo")
+    if not context.dry_run:
+        if not can_undo:
+            raise BridgeRequestError("bad_plan", "Nothing to undo")
+        try:
+            context.song.undo()
+        except Exception as exc:
+            raise BridgeRequestError("write_failed", "Failed to undo: %s" % exc)
+    return {"type": "undo", "can_undo": bool(can_undo)}
+
+
+def apply_redo(context, operation):
+    can_redo = safe_get(context.song, "can_redo")
+    if not context.dry_run:
+        if not can_redo:
+            raise BridgeRequestError("bad_plan", "Nothing to redo")
+        try:
+            context.song.redo()
+        except Exception as exc:
+            raise BridgeRequestError("write_failed", "Failed to redo: %s" % exc)
+    return {"type": "redo", "can_redo": bool(can_redo)}
 
 
 def apply_set_transport(context, operation):
@@ -1390,6 +1533,9 @@ def apply_set_track_state(context, operation):
     if "name" in operation:
         name = str(operation.get("name"))
         updates.append(track_state_update(track, "name", name))
+    if "color" in operation:
+        value = color_int(operation.get("color"), "set_track_state color")
+        updates.append(track_state_update(track, "color", value))
     for field in ("mute", "solo", "arm"):
         if field in operation:
             value = required_bool(operation.get(field), "set_track_state %s" % field)
@@ -1563,6 +1709,35 @@ def apply_load_browser_item(context, operation):
         "track_name": target["track_name"],
         "browser_item": item_info,
         "previous_device_count": previous_device_count,
+    }
+
+
+def apply_delete_device(context, operation):
+    require_allow_destructive(operation, "delete_device")
+    target = resolve_plan_track_target(context, operation)
+    track = target["track"]
+    device_index = required_index(operation, "device_index")
+    devices = safe_list(track, "devices")
+    if device_index >= len(devices):
+        raise BridgeRequestError(
+            "not_found",
+            "No device at %s track %s device index %s" % (target["track_type"], target["track_index"], device_index),
+        )
+    device = devices[device_index]
+    assert_optional_name(operation, "device_name", safe_get(device, "name"), "device")
+    device_name = safe_get(device, "name")
+    if not context.dry_run:
+        try:
+            track.delete_device(device_index)
+        except Exception as exc:
+            raise BridgeRequestError("write_failed", "Failed to delete device %s: %s" % (device_index, exc))
+    return {
+        "type": "delete_device",
+        "track_type": target["track_type"],
+        "track_index": target["track_index"],
+        "track_name": target["track_name"],
+        "device_index": device_index,
+        "device_name": device_name,
     }
 
 
@@ -1980,6 +2155,103 @@ def apply_crop_clip(context, operation):
         "clip_ref": operation.get("clip_ref"),
         "track_index": clip_ref["track_index"],
         "scene_index": clip_ref["scene_index"],
+    }
+
+
+def apply_set_clip_loop(context, operation):
+    clip_ref = context.resolve_clip(operation)
+    clip = clip_ref.get("clip")
+    fields = {}
+    if "looping" in operation:
+        fields["looping"] = required_bool(operation.get("looping"), "set_clip_loop looping")
+    for field in ("loop_start", "loop_end", "start_marker", "end_marker"):
+        if field in operation:
+            fields[field] = non_negative_float(operation.get(field), "set_clip_loop %s" % field)
+    if not fields:
+        raise BridgeRequestError(
+            "bad_plan",
+            "set_clip_loop requires looping, loop_start, loop_end, start_marker, or end_marker",
+        )
+    validate_region_pair(fields, "loop_start", "loop_end", "set_clip_loop")
+    validate_region_pair(fields, "start_marker", "end_marker", "set_clip_loop")
+    if not context.dry_run:
+        for field in ordered_clip_loop_fields(clip, fields):
+            try:
+                setattr(clip, field, fields[field])
+            except Exception as exc:
+                raise BridgeRequestError("write_failed", "Failed to set clip %s: %s" % (field, exc))
+    return {
+        "type": "set_clip_loop",
+        "clip_ref": operation.get("clip_ref"),
+        "track_index": clip_ref["track_index"],
+        "scene_index": clip_ref["scene_index"],
+        "updates": [{"field": field, "value": fields[field]} for field in sorted(fields)],
+    }
+
+
+def ordered_clip_loop_fields(clip, fields):
+    order = []
+    if "looping" in fields:
+        order.append("looping")
+    order.extend(region_field_order(clip, fields, "loop_start", "loop_end"))
+    order.extend(region_field_order(clip, fields, "start_marker", "end_marker"))
+    return order
+
+
+def region_field_order(clip, fields, start_field, end_field):
+    has_start = start_field in fields
+    has_end = end_field in fields
+    if has_start and has_end:
+        current_end = safe_get(clip, end_field)
+        if current_end is not None and fields[start_field] >= current_end:
+            return [end_field, start_field]
+        return [start_field, end_field]
+    if has_start:
+        return [start_field]
+    if has_end:
+        return [end_field]
+    return []
+
+
+def validate_region_pair(fields, start_field, end_field, label):
+    if start_field in fields and end_field in fields and fields[start_field] >= fields[end_field]:
+        raise BridgeRequestError(
+            "bad_plan",
+            "%s %s must be less than %s" % (label, start_field, end_field),
+        )
+
+
+def apply_set_clip_properties(context, operation):
+    clip_ref = context.resolve_clip(operation)
+    clip = clip_ref.get("clip")
+    updates = []
+    if "name" in operation:
+        updates.append({"field": "name", "previous": safe_get(clip, "name"), "value": str(operation.get("name"))})
+    if "color" in operation:
+        updates.append(
+            {
+                "field": "color",
+                "previous": safe_number(safe_get(clip, "color")),
+                "value": color_int(operation.get("color"), "set_clip_properties color"),
+            }
+        )
+    if not updates:
+        raise BridgeRequestError("bad_plan", "set_clip_properties requires name or color")
+    if not context.dry_run:
+        for update in updates:
+            try:
+                setattr(clip, update["field"], update["value"])
+            except Exception as exc:
+                raise BridgeRequestError(
+                    "write_failed",
+                    "Failed to set clip %s: %s" % (update["field"], exc),
+                )
+    return {
+        "type": "set_clip_properties",
+        "clip_ref": operation.get("clip_ref"),
+        "track_index": clip_ref["track_index"],
+        "scene_index": clip_ref["scene_index"],
+        "updates": updates,
     }
 
 
@@ -2536,6 +2808,16 @@ def plan_note_to_dict(note):
 
 def plan_note_to_legacy_tuple(note):
     return (note["pitch"], note["start_time"], note["duration"], note["velocity"], note["mute"])
+
+
+def color_int(value, label):
+    try:
+        parsed = int(value)
+    except Exception:
+        raise BridgeRequestError("bad_plan", "%s must be an integer RGB value" % label)
+    if parsed < 0 or parsed > 0xFFFFFF:
+        raise BridgeRequestError("bad_plan", "%s must be between 0 and 16777215" % label)
+    return parsed
 
 
 def int_range(value, minimum, maximum, label):

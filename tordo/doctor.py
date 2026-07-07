@@ -12,7 +12,7 @@ from tordo.bridge_client import DEFAULT_HOST, DEFAULT_PORT, BridgeConnectionErro
 from tordo.remote_install import DEFAULT_USER_LIBRARY, source_bridge_version
 
 MINIMUM_LIVE_VERSION = "12.4"
-EXPECTED_BRIDGE_VERSION = "0.8.1"
+EXPECTED_BRIDGE_VERSION = "0.9.1"
 DEFAULT_REMOTE_SCRIPT = DEFAULT_USER_LIBRARY / "Remote Scripts" / "TordoBridge"
 
 
