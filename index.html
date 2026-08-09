@@ -5,174 +5,319 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Tordo — Make music in Ableton Live by talking to your AI</title>
 <meta name="description" content="Tordo is a friendly bridge between Ableton Live and the AI agent you already use. Describe what you want and your agent builds it safely inside your Live Set." />
-<link rel="icon" href="assets/tordo_logo.png" />
+<link rel="icon" href="assets/tordo-mark-white.svg" type="image/svg+xml" />
+<!-- GitHub Pages: JetBrains Mono ≈ closest free geometric mono to Berkeley Mono -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;450;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --bg: #faf8f5;
-    --surface: #ffffff;
-    --ink: #211f1c;
-    --ink-soft: #5c564e;
-    --ink-faint: #978f84;
-    --accent: #e0671c;
-    --accent-strong: #bd5413;
-    --accent-tint: #fbf0e6;
-    --line: #ebe6df;
-    --line-soft: #f2ede6;
-    --radius: 18px;
-    --radius-sm: 12px;
-    --shadow-sm: 0 1px 2px rgba(33,31,28,.04);
-    --shadow: 0 2px 4px rgba(33,31,28,.035), 0 16px 44px rgba(33,31,28,.07);
-    --maxw: 1080px;
-    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+  /*
+    Bearbone Design System v0.1
+    Local: Berkeley Mono (licensed)
+    Web fallback: JetBrains Mono
+  */
+  @font-face {
+    font-family: "Berkeley Mono";
+    src: local("Berkeley Mono"), local("Berkeley Mono Regular"), local("BerkeleyMono-Regular");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Berkeley Mono";
+    src: local("Berkeley Mono Medium"), local("BerkeleyMono-Medium");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Berkeley Mono";
+    src: local("Berkeley Mono Bold"), local("BerkeleyMono-Bold");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Berkeley Mono";
+    src: local("Berkeley Mono ExtraBold"), local("BerkeleyMono-ExtraBold");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
   }
 
-  * { box-sizing: border-box; }
+  :root {
+    --bg: #000000;
+    --fg: #ffffff;
+    --fg2: #b0b0b0;
+    --fg3: #6e6e6e;
+    --stroke: #9a9a9a;
+    --stroke-soft: #3a3a3a;
+    --panel: #000000;
+    --maxw: 1080px;
+    --mono: "Berkeley Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0;
     background: var(--bg);
-    color: var(--ink);
-    font-family: var(--sans);
-    font-size: 17px;
+    color: var(--fg);
+    font-family: var(--mono);
+    font-size: 15px;
     line-height: 1.65;
-    font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   a { color: inherit; text-decoration: none; }
-  ::selection { background: var(--accent-tint); color: var(--accent-strong); }
+  ::selection { background: #ffffff; color: #000000; }
 
   .wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 28px; }
-  .serif { font-family: var(--serif); font-optical-sizing: auto; font-weight: 500; }
 
-  /* Header */
+  /* Nav */
   header {
     position: sticky; top: 0; z-index: 20;
-    background: rgba(250,248,245,.78);
-    backdrop-filter: saturate(150%) blur(12px);
-    -webkit-backdrop-filter: saturate(150%) blur(12px);
-    border-bottom: 1px solid var(--line-soft);
+    background: rgba(0,0,0,.92);
+    border-bottom: 1px solid var(--stroke-soft);
   }
-  .nav { display: flex; align-items: center; justify-content: space-between; height: 72px; }
-  .brand { font-family: var(--serif); font-weight: 600; font-size: 24px; letter-spacing: -.02em; }
-  .nav-links { display: flex; align-items: center; gap: 30px; }
-  .nav-links a { color: var(--ink-soft); font-size: 15px; font-weight: 500; transition: color .15s; }
-  .nav-links a:hover { color: var(--ink); }
+  .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .brand {
+    display: inline-flex; align-items: center; gap: 12px;
+    font-weight: 600; font-size: 14px; letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .brand-mark {
+    width: 22px; height: 22px; display: block;
+  }
+  .nav-links { display: flex; align-items: center; gap: 28px; }
+  .nav-links a {
+    color: var(--fg2); font-size: 12px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    transition: color .15s;
+  }
+  .nav-links a:hover { color: var(--fg); }
   .gh {
-    display: inline-flex; align-items: center; gap: 7px;
-    border: 1px solid var(--line); background: var(--surface);
-    padding: 8px 15px; border-radius: 999px; font-weight: 550; font-size: 14px;
-    box-shadow: var(--shadow-sm); transition: border-color .18s, transform .18s;
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid var(--stroke-soft);
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--fg);
+    transition: border-color .15s, background .15s;
   }
-  .gh:hover { border-color: #ddd6cb; transform: translateY(-1px); }
-  .gh svg { width: 16px; height: 16px; }
+  .gh:hover { border-color: var(--stroke); background: #0a0a0a; }
+  .gh svg { width: 14px; height: 14px; }
 
   /* Hero */
-  .hero { position: relative; text-align: center; padding: 96px 0 80px; overflow: hidden; }
-  .hero::before {
-    content: ""; position: absolute; top: -160px; left: 50%; transform: translateX(-50%);
-    width: 720px; height: 720px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(224,103,28,.12), rgba(224,103,28,0) 60%);
-    pointer-events: none; z-index: 0;
+  .hero {
+    padding: 88px 0 72px;
+    border-bottom: 1px solid var(--stroke-soft);
   }
-  .hero > * { position: relative; z-index: 1; }
-  .hero .wrap { text-align: center; }
-  .hero-logo { display: block; width: 248px; height: auto; margin: 0 auto 22px; }
+  .hero-inner { max-width: 720px; }
   .badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--surface); border: 1px solid var(--line);
-    color: var(--ink-soft); font-size: 13.5px; font-weight: 500;
-    padding: 6px 14px; border-radius: 999px; margin-bottom: 26px; box-shadow: var(--shadow-sm);
+    display: inline-flex; align-items: center; gap: 10px;
+    border: 1px solid var(--stroke-soft);
+    color: var(--fg2); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 8px 14px; border-radius: 999px; margin-bottom: 28px;
   }
-  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+  .badge .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--fg); flex: none;
+  }
   h1 {
-    font-family: var(--serif); font-optical-sizing: auto; font-weight: 500;
-    font-size: clamp(38px, 5.6vw, 62px); line-height: 1.04; letter-spacing: -.018em;
-    margin: 0 auto 22px; max-width: 15ch;
+    font-size: clamp(28px, 4.2vw, 40px);
+    font-weight: 600; line-height: 1.2;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 0 0 22px;
   }
-  h1 em { font-style: italic; color: var(--accent); font-weight: 500; }
-  .lede { font-size: clamp(17px, 2.1vw, 20px); color: var(--ink-soft); max-width: 56ch; margin: 0 auto 34px; line-height: 1.6; }
-  .cta-row { display: flex; gap: 13px; justify-content: center; flex-wrap: wrap; }
+  h1 em {
+    font-style: normal;
+    color: var(--fg2);
+    border-bottom: 1px solid var(--stroke);
+  }
+  .lede {
+    font-size: 14px; color: var(--fg2); max-width: 58ch;
+    margin: 0 0 32px; line-height: 1.7; letter-spacing: 0.02em;
+  }
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
   .btn {
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 14px 26px; border-radius: 999px; font-weight: 600; font-size: 15.5px;
-    transition: transform .18s, box-shadow .18s, background .18s, border-color .18s; cursor: pointer; border: 1px solid transparent;
+    padding: 12px 20px; border-radius: 999px;
+    font-weight: 600; font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; border: 1px solid transparent;
+    transition: background .15s, border-color .15s, color .15s;
+    cursor: pointer;
   }
-  .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 8px 22px rgba(224,103,28,.26); }
-  .btn-primary:hover { background: var(--accent-strong); transform: translateY(-2px); box-shadow: 0 10px 26px rgba(224,103,28,.3); }
-  .btn-ghost { background: var(--surface); border-color: var(--line); color: var(--ink); box-shadow: var(--shadow-sm); }
-  .btn-ghost:hover { border-color: #ddd6cb; transform: translateY(-2px); }
-  .req { margin-top: 30px; font-size: 14px; color: var(--ink-faint); letter-spacing: .01em; }
-  .req b { color: var(--ink-soft); font-weight: 600; }
+  .btn-primary {
+    background: var(--fg); color: var(--bg); border-color: var(--fg);
+  }
+  .btn-primary:hover { background: var(--fg2); border-color: var(--fg2); }
+  .btn-ghost {
+    background: transparent; border-color: var(--stroke-soft); color: var(--fg);
+  }
+  .btn-ghost:hover { border-color: var(--stroke); }
+  .req {
+    font-size: 11px; color: var(--fg3);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .req b { color: var(--fg2); font-weight: 600; }
 
   /* Sections */
-  section { padding: 76px 0; }
-  .section-head { text-align: center; max-width: 60ch; margin: 0 auto 52px; }
-  .eyebrow { text-transform: uppercase; letter-spacing: .15em; font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 14px; }
-  h2 { font-family: var(--serif); font-optical-sizing: auto; font-weight: 500; font-size: clamp(28px, 3.6vw, 38px); letter-spacing: -.015em; line-height: 1.12; margin: 0 0 14px; }
-  .section-head p { color: var(--ink-soft); margin: 0 auto; font-size: 17px; }
+  section { padding: 72px 0; border-bottom: 1px solid var(--stroke-soft); }
+  .section-head { max-width: 60ch; margin: 0 0 40px; }
+  .eyebrow {
+    text-transform: uppercase; letter-spacing: 0.16em;
+    font-size: 11px; font-weight: 600; color: var(--fg3); margin-bottom: 12px;
+  }
+  h2 {
+    font-size: clamp(20px, 2.8vw, 26px); font-weight: 600;
+    letter-spacing: 0.08em; line-height: 1.25;
+    text-transform: uppercase; margin: 0 0 12px;
+  }
+  .section-head p {
+    color: var(--fg2); margin: 0; font-size: 13px; line-height: 1.7;
+    letter-spacing: 0.02em;
+  }
 
   /* Features */
-  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+  }
   .card {
-    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 32px; box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s, border-color .2s;
+    border: 1px solid var(--stroke-soft);
+    border-radius: var(--radius);
+    padding: 24px 22px;
+    background: var(--panel);
+    transition: border-color .15s;
   }
-  .card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--line); }
+  .card:hover { border-color: var(--stroke); }
   .ico {
-    width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center;
-    background: var(--accent-tint); color: var(--accent); margin-bottom: 20px;
+    width: 40px; height: 40px; border-radius: 8px;
+    display: grid; place-items: center;
+    border: 1px solid var(--stroke-soft);
+    margin-bottom: 18px;
   }
-  .ico svg { width: 22px; height: 22px; }
-  .card h3 { font-family: var(--serif); font-weight: 600; margin: 0 0 8px; font-size: 20px; letter-spacing: -.01em; }
-  .card p { margin: 0; color: var(--ink-soft); font-size: 15.5px; line-height: 1.6; }
+  .ico svg {
+    width: 18px; height: 18px;
+    stroke: var(--fg); fill: none;
+    stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .card h3 {
+    font-weight: 600; margin: 0 0 8px; font-size: 13px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .card p {
+    margin: 0; color: var(--fg2); font-size: 13px; line-height: 1.65;
+    letter-spacing: 0.01em;
+  }
 
   /* Quick start */
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; position: relative; }
-  .step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 30px; box-shadow: var(--shadow-sm); }
-  .step-n {
-    width: 34px; height: 34px; border-radius: 999px; border: 1.5px solid var(--accent);
-    color: var(--accent); display: grid; place-items: center; font-size: 15px; font-weight: 600;
-    font-family: var(--serif); margin-bottom: 18px;
+  .steps {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
   }
-  .step h3 { font-family: var(--serif); font-weight: 600; margin: 0 0 8px; font-size: 18.5px; }
-  .step p { margin: 0; color: var(--ink-soft); font-size: 15px; line-height: 1.58; }
+  .step {
+    border: 1px solid var(--stroke-soft);
+    border-radius: var(--radius);
+    padding: 22px;
+    background: var(--panel);
+  }
+  .step-n {
+    width: 28px; height: 28px; border-radius: 999px;
+    border: 1px solid var(--stroke);
+    color: var(--fg); display: grid; place-items: center;
+    font-size: 12px; font-weight: 600; margin-bottom: 16px;
+    letter-spacing: 0.04em;
+  }
+  .step h3 {
+    font-weight: 600; margin: 0 0 8px; font-size: 12px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .step p {
+    margin: 0; color: var(--fg2); font-size: 12.5px; line-height: 1.6;
+  }
 
   .codebox {
-    margin-top: 18px; background: #211f1c; border-radius: var(--radius-sm); padding: 15px 16px;
+    margin-top: 16px;
+    border: 1px solid var(--stroke-soft);
+    border-radius: 8px;
+    padding: 12px 12px 12px 14px;
     display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    background: #050505;
   }
-  .codebox code { color: #f0e9df; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
-  .copy { flex: none; background: #38352f; color: #f0e9df; border: none; border-radius: 8px; padding: 6px 11px; font-size: 11.5px; font-weight: 600; cursor: pointer; transition: background .15s; }
-  .copy:hover { background: #4a463f; }
+  .codebox code {
+    color: var(--fg2);
+    font-family: var(--mono);
+    font-size: 11.5px; line-height: 1.55; white-space: pre-wrap;
+  }
+  .copy {
+    flex: none; background: transparent; color: var(--fg);
+    border: 1px solid var(--stroke-soft); border-radius: 999px;
+    padding: 5px 10px; font-size: 10px; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    cursor: pointer; font-family: var(--mono);
+    transition: border-color .15s, background .15s;
+  }
+  .copy:hover { border-color: var(--stroke); }
 
   .tip {
-    margin-top: 30px; text-align: center; color: var(--ink-soft); font-size: 15.5px;
-    background: var(--accent-tint); border: 1px solid #f5e1cf; border-radius: var(--radius);
-    padding: 20px 26px; max-width: 760px; margin-left: auto; margin-right: auto;
+    margin-top: 28px; color: var(--fg2); font-size: 13px;
+    border: 1px solid var(--stroke-soft); border-radius: var(--radius);
+    padding: 18px 22px; line-height: 1.65;
   }
-  .tip b { color: var(--ink); font-weight: 600; }
+  .tip b { color: var(--fg); font-weight: 600; }
 
   /* Footer */
-  footer { border-top: 1px solid var(--line); padding: 56px 0 60px; }
-  .foot-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
-  .foot-brand { font-family: var(--serif); font-weight: 600; font-size: 22px; letter-spacing: -.02em; }
-  .foot-tag { color: var(--ink-faint); font-size: 14.5px; margin-top: 10px; max-width: 34ch; line-height: 1.55; }
-  .foot-links { display: flex; gap: 28px; flex-wrap: wrap; }
-  .foot-links a { color: var(--ink-soft); font-size: 14.5px; font-weight: 500; transition: color .15s; }
-  .foot-links a:hover { color: var(--accent); }
-  .legal { margin-top: 40px; padding-top: 26px; border-top: 1px solid var(--line-soft); color: var(--ink-faint); font-size: 12.5px; line-height: 1.75; }
+  footer {
+    border-top: none;
+    padding: 48px 0 56px;
+  }
+  .foot-top {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 32px; flex-wrap: wrap;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--stroke-soft);
+  }
+  .foot-brand {
+    font-weight: 600; font-size: 13px; letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .foot-tag {
+    color: var(--fg3); font-size: 12px; margin-top: 10px;
+    max-width: 36ch; line-height: 1.55;
+  }
+  .foot-links { display: flex; gap: 24px; flex-wrap: wrap; }
+  .foot-links a {
+    color: var(--fg2); font-size: 11px; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    transition: color .15s;
+  }
+  .foot-links a:hover { color: var(--fg); }
+  .legal {
+    margin-top: 24px; color: var(--fg3); font-size: 11px; line-height: 1.75;
+    letter-spacing: 0.02em;
+  }
 
-  @media (max-width: 760px) {
-    body { font-size: 16px; }
-    .nav-links a:not(.gh) { display: none; }
+  /* Ops baseline */
+  .baseline {
+    margin-top: 28px;
+    border: 1px solid var(--stroke-soft);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex; flex-wrap: wrap; gap: 8px 18px;
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--fg3);
+  }
+  .baseline span b { color: var(--fg2); font-weight: 600; }
+
+  @media (max-width: 820px) {
     .grid, .steps { grid-template-columns: 1fr; }
-    .hero { padding: 68px 0 56px; }
-    section { padding: 60px 0; }
+    .nav-links a:not(.gh) { display: none; }
+    .hero { padding: 64px 0 56px; }
+    section { padding: 56px 0; }
   }
 </style>
 </head>
@@ -180,7 +325,13 @@
 
 <header>
   <div class="wrap nav">
-    <a class="brand" href="#top">tordo</a>
+    <a class="brand" href="#top">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="2" y="2" width="20" height="20" rx="2" fill="none" stroke="#fff" stroke-width="1.5"/>
+        <path d="M7 8h10M12 8v8M8 16h8" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Tordo
+    </a>
     <nav class="nav-links">
       <a href="#features">Features</a>
       <a href="#quickstart">Quick start</a>
@@ -194,47 +345,54 @@
 
 <main id="top">
 
-  <!-- Hero -->
   <section class="hero">
     <div class="wrap">
-      <img class="hero-logo" src="assets/tordo_mark.png" alt="Tordo" />
-      <div class="badge"><span class="dot"></span> For Ableton Live &amp; the AI agent you already use</div>
-      <h1 class="serif">Make music in Ableton Live by <em>talking to your AI</em></h1>
-      <p class="lede">Tordo is a friendly bridge between Ableton Live and your AI assistant. Describe what you want — a beat, a melody, a mix tweak — and your agent builds it safely inside your Live Set.</p>
-      <div class="cta-row">
-        <a class="btn btn-primary" href="#quickstart">Get started</a>
-        <a class="btn btn-ghost" href="https://github.com/deadjoe/tordo" target="_blank" rel="noopener">View on GitHub</a>
+      <div class="hero-inner">
+        <div class="badge"><span class="dot"></span> For Ableton Live &amp; the AI agent you already use</div>
+        <h1>Make music in Ableton Live by <em>talking to your AI</em></h1>
+        <p class="lede">Tordo is a friendly bridge between Ableton Live and your AI assistant. Describe what you want — a beat, a melody, a mix tweak — and your agent builds it safely inside your Live Set.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#quickstart">Get started</a>
+          <a class="btn btn-ghost" href="https://github.com/deadjoe/tordo" target="_blank" rel="noopener">View on GitHub</a>
+        </div>
+        <p class="req"><b>macOS</b> &nbsp;·&nbsp; <b>Ableton Live 12.4+</b> &nbsp;·&nbsp; works with <b>Claude Code</b> or <b>Codex</b></p>
       </div>
-      <p class="req"><b>macOS</b> &nbsp;·&nbsp; <b>Ableton Live 12.4+</b> &nbsp;·&nbsp; works with <b>Claude Code</b> or <b>Codex</b></p>
     </div>
   </section>
 
-  <!-- Features -->
   <section id="features">
     <div class="wrap">
       <div class="section-head">
-        <div class="eyebrow">Why Tordo</div>
+        <div class="eyebrow">01 · Why Tordo</div>
         <h2>Your ideas, straight into Live</h2>
         <p>No scripting, no clicking through menus. Tordo lets your AI assistant do the mechanical work while you stay the musician.</p>
       </div>
       <div class="grid">
         <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
           <h3>Just describe it</h3>
           <p>Ask in plain language. Your agent turns ideas into tracks, clips, and notes — no menus, no mouse gymnastics.</p>
         </div>
         <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
           <h3>Safe by default</h3>
           <p>Every change is previewed before it’s applied. Tordo never overwrites your clips and never deletes anything without asking.</p>
         </div>
         <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>
+          <div class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+          </div>
           <h3>You keep the ears</h3>
           <p>Tordo can’t hear audio, and it won’t pretend to. It asks for your feedback on how things sound, then makes the edits.</p>
         </div>
         <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></svg></div>
+          <div class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></svg>
+          </div>
           <h3>Bring your own agent</h3>
           <p>Works with the AI coding assistants you already use, like Claude Code and Codex. Tordo is simply a skill they learn.</p>
         </div>
@@ -242,11 +400,10 @@
     </div>
   </section>
 
-  <!-- Quick start -->
   <section id="quickstart">
     <div class="wrap">
       <div class="section-head">
-        <div class="eyebrow">Quick start</div>
+        <div class="eyebrow">02 · Quick start</div>
         <h2>Up and running in three steps</h2>
         <p>You don’t need to be a developer. Add the skill to your AI assistant and let it handle the setup.</p>
       </div>
@@ -262,7 +419,7 @@
           <p>Paste this to your AI assistant. It learns how to use Tordo and sets up the small Live connector for you.</p>
           <div class="codebox">
             <code id="cmd1">Add the Tordo skill from github.com/deadjoe/tordo, then set it up and check everything works.</code>
-            <button class="copy" data-target="cmd1">Copy</button>
+            <button class="copy" type="button" data-target="cmd1">Copy</button>
           </div>
         </div>
         <div class="step">
@@ -271,11 +428,18 @@
           <p>Open your Live Set and say what you want. Tordo previews each change before applying it.</p>
           <div class="codebox">
             <code id="cmd2">Add a simple 4-bar piano melody on a new track, then let me listen.</code>
-            <button class="copy" data-target="cmd2">Copy</button>
+            <button class="copy" type="button" data-target="cmd2">Copy</button>
           </div>
         </div>
       </div>
       <p class="tip">First time? Just tell your assistant <b>“set up Tordo and confirm it works.”</b> The skill walks you both through installing the Live connector and selecting it in Ableton — one restart and you’re ready.</p>
+      <div class="baseline">
+        <span><b>Project</b> · tordo</span>
+        <span><b>Platform</b> · macOS</span>
+        <span><b>Live</b> · 12.4+</span>
+        <span><b>Agents</b> · Claude Code / Codex</span>
+        <span><b>Design</b> · Bearbone DS v0.1</span>
+      </div>
     </div>
   </section>
 
@@ -285,7 +449,7 @@
   <div class="wrap">
     <div class="foot-top">
       <div>
-        <div class="foot-brand">tordo</div>
+        <div class="foot-brand">Tordo</div>
         <p class="foot-tag">A friendly, agent-driven way to make music in Ableton Live.</p>
       </div>
       <nav class="foot-links">

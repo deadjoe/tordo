@@ -1,7 +1,7 @@
 # tordo
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/deadjoe/tordo/main/assets/tordo_logo.png" alt="tordo logo" width="200" height="200">
+  <img src="https://raw.githubusercontent.com/deadjoe/tordo/main/assets/tordo-mark.svg" alt="Tordo" width="96" height="96">
 </p>
 
 Tordo is an agent-facing Ableton Live control toolkit. It gives an AI agent a

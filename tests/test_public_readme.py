@@ -26,10 +26,12 @@ class PublicReadmeTests(unittest.TestCase):
         content = Path("README.md").read_text()
 
         self.assertIn(
-            'src="https://raw.githubusercontent.com/deadjoe/tordo/main/assets/tordo_logo.png"',
+            'src="https://raw.githubusercontent.com/deadjoe/tordo/main/assets/tordo-mark.svg"',
             content,
         )
-        self.assertNotIn('src="assets/tordo_logo.png"', content)
+        self.assertNotIn('src="assets/tordo-mark.svg"', content)
+        self.assertNotIn('tordo_logo.png', content)
+        self.assertNotIn('tordo_mark.png', content)
         self.assertIn("The Python package version and Live bridge version are intentionally separate", content)
         self.assertIn("The package version is the CLI and Skill distribution version", content)
         self.assertIn("The bridge version is the Live-side Remote Script compatibility version checked", content)
